@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+mdic-private-ai/
+*.dpapi
+*.fernet
+*.key

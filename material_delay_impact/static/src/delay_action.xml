@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="material_delay_impact.Action">
+        <div class="mdic-page h-100 overflow-auto">
+            <div class="mdic-content">
+                <div class="mdic-heading">
+                    <div><button t-if="!this.state.shared" class="btn btn-link p-0 mb-2" t-on-click="this.back"><t t-esc="this.t('back')"/></button>
+                        <h1><t t-esc="this.t('title')"/></h1><p t-if="!this.state.shared"><t t-esc="this.t('intro')"/></p></div>
+                    <div t-if="!this.state.shared"><button class="btn btn-outline-primary mdic-settings-toggle" t-on-click="this.toggleSettings" t-att-disabled="this.state.busy or this.state.aiBusy"><t t-esc="this.t(this.state.showSettings ? 'close' : 'settings')"/></button></div>
+                </div>
+                <div class="alert alert-info"><t t-esc="this.t('readonly')"/></div><p t-if="this.state.shared" class="alert alert-info mdic-shared-notice" t-esc="this.sharedNotice()"/><p t-if="this.state.resumed" class="alert alert-info mdic-resumed" role="status" t-esc="this.t('resumed')"/>
+                <div t-if="this.state.showSettings" class="card card-body mb-3 mdic-settings">
+                    <h2><t t-esc="this.t('settings')"/></h2>
+                    <p class="small"><t t-esc="this.t('adminHelp')"/></p>
+                    <p class="small text-muted"><t t-esc="this.t('secure')"/></p>
+                    <div class="mdic-config-grid">
+                        <label><span><t t-esc="this.t('provider')"/></span><select class="form-select" t-on-change="this.onProvider" t-att-value="this.state.provider" t-att-disabled="!this.state.config?.can_manage or this.state.settingsBusy">
+                            <option value="deepseek">DeepSeek</option><option value="openai">OpenAI</option>
+                        </select></label>
+                        <label><span><t t-esc="this.t('model')"/></span><input class="form-control" type="text" t-att-value="this.state.model" t-on-input="this.onModel" t-att-disabled="!this.state.config?.can_manage or this.state.settingsBusy"/></label>
+                        <label><span><t t-esc="this.t('key')"/></span><input class="form-control mdic-key" type="password" autocomplete="new-password" t-att-value="this.state.key" t-on-input="this.onKey" t-att-disabled="!this.state.config?.can_manage or this.state.settingsBusy"/></label>
+                    </div>
+                    <p class="small mt-2"><t t-esc="this.t('keyHelp')"/></p>
+                    <p><t t-esc="this.t(this.state.config?.configured ? 'configured' : 'notConfigured')"/></p>
+                    <div class="d-flex flex-wrap gap-2" t-if="this.state.config?.can_manage">
+                        <button class="btn btn-primary" t-on-click="this.saveConfig" t-att-disabled="this.state.settingsBusy"><t t-esc="this.t('save')"/></button>
+                        <button class="btn btn-outline-primary" t-on-click="this.testConfig" t-att-disabled="this.state.settingsBusy or !this.state.config?.configured"><t t-esc="this.t('test')"/></button>
+                        <button class="btn btn-outline-danger" t-on-click="this.removeConfig" t-att-disabled="this.state.settingsBusy or !this.state.config?.configured"><t t-esc="this.t('remove')"/></button>
+                    </div>
+                    <p t-if="this.state.configMessage" class="mt-2 mb-0" role="status" t-esc="this.state.configMessage"/>
+                    <details class="mt-3"><summary><t t-esc="this.t('guides')"/></summary>
+                        <p class="mt-2"><t t-esc="this.t('guideSteps')"/></p>
+                        <ul><li><t t-esc="this.t('deepseekGuide')"/> <a href="https://platform.deepseek.com/" target="_blank" rel="noopener noreferrer">DeepSeek</a></li>
+                            <li><t t-esc="this.t('openaiGuide')"/> <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI</a></li>
+                            <li><t t-esc="this.t('claudeGuide')"/> <a href="https://platform.claude.com/docs/en/api/overview" target="_blank" rel="noopener noreferrer">Claude</a></li>
+                            <li><t t-esc="this.t('geminiGuide')"/> <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank" rel="noopener noreferrer">Gemini</a></li>
+                        </ul>
+                    </details>
+                </div>
+                <p t-if="this.state.config?.configured or this.state.showSettings" class="small text-muted mdic-ai-disclosure"><t t-esc="this.t('privacy')"/></p>
+                <label t-if="!this.state.shared and (this.state.config?.configured or this.state.showSettings)" class="d-flex gap-2 align-items-start mb-3 mdic-ai-consent">
+                    <input type="checkbox" class="form-check-input" t-att-checked="this.state.aiConsent" t-on-change="this.onAIConsent" t-att-disabled="this.state.aiBusy or this.state.settingsBusy"/>
+                    <span><t t-esc="this.t('aiConsent')"/></span>
+                </label>
+                <div t-if="!this.state.shared and !this.state.options and !this.state.error"><t t-esc="this.t('loading')"/></div>
+                <div t-if="this.state.options" class="mdic-inputs card card-body mb-3">
+                    <label><span><t t-esc="this.t('line')"/> · <t t-esc="this.state.options.order"/></span>
+                        <select class="form-select" t-on-change="this.onLine" t-att-value="this.state.lineId" t-att-disabled="this.state.busy or this.state.aiBusy">
+                            <t t-foreach="this.state.options.lines" t-as="line" t-key="line.id">
+                                <option t-att-value="line.id"><t t-esc="line.product"/> · <t t-esc="this.t('pending')"/> <t t-esc="this.number(line.pending)"/> <t t-esc="line.unit"/></option>
+                            </t>
+                        </select></label>
+                    <label><span><t t-esc="this.t('arrival')"/></span>
+                        <input class="form-control" type="datetime-local" t-att-value="this.state.arrival" t-on-input="this.onArrival" t-att-disabled="this.state.busy or this.state.aiBusy"/></label>
+                    <label><span><t t-esc="this.t('timezone')"/></span>
+                        <input class="form-control" type="text" t-att-value="this.state.timezone" t-on-input="this.onTimezone" t-att-disabled="this.state.busy or this.state.aiBusy or this.state.settingsBusy" placeholder="Asia/Shanghai"/></label>
+                    <button class="btn btn-primary" t-on-click="this.run" t-att-disabled="this.state.busy or this.state.aiBusy or this.state.settingsBusy">
+                        <t t-esc="this.t(this.state.busy ? 'running' : 'analyze')"/>
+                    </button>
+                    <div class="mdic-arrival-comparison" t-att-aria-label="this.t('dateComparison')">
+                        <span><t t-esc="this.t('plannedArrival')"/>: <strong class="mdic-planned-arrival" t-esc="this.date(this.plannedArrival)"/></span>
+                        <span aria-hidden="true">→</span><span><t t-esc="this.t('scenarioArrival')"/>: <strong class="mdic-scenario-arrival" t-esc="this.date(this.scenarioArrival)"/></span>
+                        <span class="small text-muted" t-esc="this.state.timezone"/>
+                    </div>
+                </div>
+                <div t-if="this.state.error" class="alert alert-danger" role="alert"><t t-esc="this.state.error"/></div>
+                <p t-if="this.state.inputsChanged and this.previousSnapshot" class="alert alert-info mdic-inputs-changed" role="status" t-esc="this.t('inputsChanged')"/>
+                <div t-if="this.state.restoredReport" class="alert alert-warning mdic-previous-result" role="status">
+                    <t t-esc="this.t('previousResult')"/>
+                </div>
+                <t t-if="this.state.shared"><div class="card card-body mb-3"><h2><t t-esc="this.t('result')"/> · <t t-esc="this.state.report.order"/></h2><p><t t-esc="this.t('material')"/>: <t t-esc="this.state.report.product"/></p><p class="mb-0"><t t-esc="this.t('arrival')"/>: <strong t-esc="this.date(this.state.report.assumed_at)"/> (<t t-esc="this.state.timezone"/>)</p></div><ReallocationPanel orderId="this.orderId" lineId="+this.state.lineId" arrival="this.state.report.assumed_at" lang="this.state.lang" timezone="this.state.timezone" originalSnapshot="this.state.report.snapshot_id" configured="false" shared="this.state.shared" report="this.state.report"/></t>
+                <t t-if="this.state.report and !this.state.shared">
+                    <t t-set="report" t-value="this.state.report"/>
+                    <div class="card card-body mb-3">
+                        <h2><t t-esc="this.t('result')"/> · <t t-esc="report.order"/></h2>
+                        <p class="text-muted mb-2"><t t-esc="this.t('company')"/>: <t t-esc="report.company"/> · <t t-esc="this.t('warehouse')"/>: <t t-esc="report.warehouse"/></p>
+                        <p><t t-esc="this.t('material')"/>: <t t-esc="report.product"/> · <t t-esc="this.t('unit')"/>: <t t-esc="report.unit"/></p>
+                        <div class="mdic-facts">
+                            <span><t t-esc="this.t('stock')"/> <strong t-esc="this.number(report.on_hand)"/></span>
+                            <span><t t-esc="this.t('reserved')"/> <strong t-esc="this.number(report.reserved)"/></span>
+                            <span><t t-esc="this.t('pending')"/> <strong t-esc="this.number(report.pending)"/></span>
+                            <span><t t-esc="this.t('arrival')"/> <strong t-esc="this.date(report.assumed_at)"/> (<t t-esc="this.state.timezone"/>)</span>
+                        </div>
+                        <p class="small text-muted mt-3 mb-0"><t t-esc="this.t('snapshot')"/>: <t t-esc="this.date(report.taken_at)"/> · <t t-esc="report.snapshot_id"/></p>
+                    </div>
+                    <section class="card card-body mb-3 mdic-impact-overview" aria-live="polite">
+                        <h2 t-esc="this.t('overview')"/>
+                        <t t-set="overview" t-value="this.impactOverview"/>
+                        <p class="mdic-overview-count" t-esc="this.fill(!overview.total ? 'overviewEmpty' : overview.affected ? 'overviewCount' : 'overviewCovered', {total:this.number(overview.total),affected:this.number(overview.affected)})"/>
+                        <p t-if="overview.affected" class="mb-2"><span t-esc="this.t('earliestNeed')"/>: <strong class="mdic-overview-earliest" t-esc="this.date(overview.earliestAt)"/>
+                            <span t-if="overview.earliest.length > 1" class="ms-2" t-esc="this.fill('earliestTied',{count:this.number(overview.earliest.length)})"/>
+                        </p>
+                        <ul t-if="overview.earliestRows.length" class="mdic-overview-needs"><li t-foreach="overview.earliestRows" t-as="row" t-key="row.ref">
+                            <button t-if="row.mo_id" class="btn btn-link p-0 fw-bold" t-on-click="() => this.openRecord('mrp.production', row.mo_id)" t-esc="row.mo"/><strong t-else="" t-esc="row.mo"/> ·
+                            <t t-esc="this.t('overviewGap')"/> <strong><t t-esc="this.knownNumber(row.delayed_shortage)"/> <t t-esc="report.unit"/></strong> ·
+                            <span t-if="row.full_at"><t t-esc="this.t('overviewCoverage')"/> <strong t-esc="this.coverageDate(row.full_at,row.need_at,row.delayed_shortage)"/></span>
+                            <span t-elif="this.hasResidual(row)" t-esc="this.fill('overviewUnfilled',{quantity:this.number(row.unfilled),unit:report.unit})"/>
+                            <span t-else="" t-esc="this.t('overviewUnknown')"/>
+                        </li></ul>
+                        <p class="mb-0"><span t-esc="this.t('overviewFinal')"/>: <strong class="mdic-overview-final" t-esc="overview.finalKnown ? this.number(overview.final) : this.t('unknown')"/> <t t-esc="report.unit"/></p>
+                    </section>
+                    <div class="card card-body mb-3 mdic-ai-report">
+                        <h2><t t-esc="this.t('ai')"/></h2>
+                        <p t-if="this.state.aiBusy" role="status" t-esc="this.t('aiRunning')"/>
+                        <t t-elif="this.state.ai">
+                            <t t-set="ai" t-value="this.state.ai.report"/>
+                            <div t-att-class="'mdic-ai-conclusion mdic-risk-' + this.calculatedGrade()">
+                                <strong t-esc="this.t(this.calculatedGrade())"/>
+                                <p class="small mt-1 mb-1" t-esc="this.t('calculatedRisk')"/>
+                                <details class="mdic-impact-details"><summary t-esc="this.t('overviewDetails')"/>
+                                <p t-foreach="this.riskFacts()" t-as="fact" t-key="fact.key" class="mb-0 mt-2 mdic-risk-fact" t-esc="fact.text"/>
+                            <t t-set="checks" t-value="this.reviewFacts()"/>
+                            <t t-if="checks.length"><h3 class="mt-3"><t t-esc="this.t('evidenceChecks')"/></h3><ul class="mdic-primary-checks mb-2"><t t-foreach="checks" t-as="check" t-key="check.key"><li t-esc="check.text"/></t></ul></t>
+                                </details>
+                            </div>
+                            <p class="small text-muted" t-esc="this.t('aiVerified')"/>
+                            <details class="mdic-ai-details"><summary><t t-esc="this.t('originalAIReport')"/></summary>
+                                <h3 class="mt-2" t-esc="this.t('originalAISummary')"/>
+                                <p class="mdic-original-ai-summary" style="white-space: pre-line" t-esc="ai.headline"/>
+                                <div t-if="ai.explanation" class="mdic-original-ai-reasons mt-3"><h3><t t-esc="this.t('explanation')"/></h3><p class="mdic-ai-text" t-esc="ai.explanation"/></div>
+                                <t t-if="ai.next_checks.length"><h3 class="mt-3"><t t-esc="this.t('checks')"/></h3><ul class="mdic-original-ai-checks mb-2"><t t-foreach="ai.next_checks" t-as="check" t-key="check_index"><li t-esc="check"/></t></ul></t>
+                                <p class="small text-muted mt-2"><t t-esc="this.state.ai.provider"/> · <t t-esc="this.state.ai.model"/> · <t t-esc="this.t('generated')"/> <t t-esc="this.date(this.state.ai.generated_at)"/></p>
+                                <t t-set="timing" t-value="this.timingFacts()"/>
+                                <t t-if="timing.length"><h3><t t-esc="this.t('timingFacts')"/></h3><p t-foreach="timing" t-as="interval" t-key="interval.key" t-esc="interval.text"/><p class="small text-muted" t-esc="this.t('timingCaveat')"/></t>
+                                <h3><t t-esc="this.t('limits')"/></h3><ul><t t-foreach="ai.limitations" t-as="limit" t-key="limit_index"><li t-esc="limit"/></t></ul>
+                            </details>
+                            <details class="mdic-ai-audit mt-2"><summary><t t-esc="this.t('reads')"/> · <t t-esc="this.state.ai.tool_log.length"/></summary>
+                                <ul><t t-foreach="this.state.ai.tool_log" t-as="read" t-key="read_index"><li><t t-esc="read.tool"/> · <t t-esc="read.snapshot_id"/></li></t></ul>
+                                <t t-foreach="ai.impacts" t-as="impact" t-key="impact.demand_ref"><p class="small"><t t-esc="impact.mo_ref"/>: <t t-esc="impact.evidence_refs.join(', ')"/></p></t>
+                            </details>
+                        </t>
+                        <t t-else="">
+                            <p t-esc="this.t(this.state.aiError ? 'aiFailed' : 'waitingAI')"/>
+                            <p t-if="this.state.aiError" class="text-danger" role="alert" t-esc="this.state.aiError"/>
+                            <button t-if="this.state.config?.configured" class="btn btn-outline-primary align-self-start mdic-run-ai" t-on-click="this.runAI" t-att-disabled="this.state.busy or this.state.aiBusy or this.state.settingsBusy"><t t-esc="this.t('runAI')"/></button>
+                        </t>
+                    </div>
+                    <ReallocationPanel t-key="report.snapshot_id" orderId="this.orderId" lineId="+this.state.lineId" arrival="report.assumed_at" lang="this.state.lang" timezone="this.state.timezone" originalSnapshot="report.snapshot_id" configured="!!this.state.config?.configured and this.state.aiConsent" resumeReview="this.state.resumeReview" shared="this.state.shared" report="report" onRecommendation="(value) => this.rememberRecommendation(report,value)"/>
+                    <div class="card mb-3">
+                        <div t-if="!report.rows.length" class="card-body"><t t-esc="this.t('empty')"/></div>
+                        <p t-else="" class="card-body small mb-0 mdic-shortage-help" t-esc="this.fill('shortageHelp', {unit: report.unit})"/>
+                        <p t-if="this.hasLateSupplies()" class="px-3 small text-muted mdic-source-allocation-help" t-esc="this.t('sourceAllocationHelp')"/>
+                        <div t-if="report.rows.length" class="table-responsive">
+                            <table class="table mb-0 mdic-results"><thead><tr>
+                                <th><t t-esc="this.t('mo')"/></th><th><t t-esc="this.t('need')"/></th><th><t t-esc="this.t('baseline')"/></th>
+                                <th><t t-esc="this.t('delayed')"/></th><th><t t-esc="this.t('added')"/></th><th><t t-esc="this.t('finalMissing')"/></th><th><t t-esc="this.t('full')"/></th><th><t t-esc="this.t('change')"/></th>
+                            </tr></thead><tbody>
+                                <t t-foreach="report.rows" t-as="row" t-key="row.ref">
+                                    <tr><td><button class="btn btn-link p-0" t-on-click="() => this.openRecord('mrp.production', row.mo_id)"><t t-esc="row.mo"/></button>
+                                        <div t-if="this.lateSupplies(row).length" class="small mt-2 mdic-late-sources">
+                                            <span class="d-block" t-esc="this.t('lateSource')"/>
+                                            <div t-foreach="this.lateSupplies(row)" t-as="item" t-key="item_index" class="mt-1 mdic-late-source">
+                                                <button t-if="item.model and item.id" class="btn btn-link p-0 text-start text-wrap mdic-source-link" t-on-click="() => this.openRecord(item.model, item.id)" t-esc="item.name"/>
+                                                <span t-else="" t-esc="item.name"/>
+                                                <span class="d-block"><t t-esc="this.number(item.quantity)"/> <t t-esc="report.unit"/> · <t t-esc="this.date(item.at)"/></span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                        <td t-esc="this.date(row.need_at)"/><td t-esc="this.number(row.baseline_shortage)"/>
+                                        <td t-esc="this.number(row.delayed_shortage)"/><td class="fw-bold" t-esc="this.number(row.new_shortage)"/>
+                                        <td t-esc="this.remaining(row)"/>
+                                        <td t-esc="this.coverageDate(row.full_at,row.need_at,row.delayed_shortage)"/><td t-esc="this.t(row.change)"/></tr>
+                                    <tr><td colspan="8"><details><summary><t t-esc="this.t('detail')"/> · <t t-esc="row.mo"/></summary>
+                                        <ul class="mb-0"><t t-foreach="row.allocations" t-as="allocation" t-key="allocation_index">
+                                            <li><t t-esc="this.sourceName(allocation.ref)"/>: <t t-esc="this.number(allocation.quantity)"/> <t t-esc="report.unit"/> · <t t-esc="this.date(allocation.at)"/></li>
+                                        </t></ul>
+                                    </details></td></tr>
+                                </t>
+                            </tbody></table>
+                        </div>
+                    </div>
+                    <p><t t-esc="this.t('surplus')"/>: <strong t-esc="this.number(report.unallocated)"/> <t t-esc="report.unit"/></p>
+                    <details t-if="report.source_balances?.length" class="card card-body mb-3 mdic-source-balances"><summary><t t-esc="this.t('balanceEvidence')"/></summary>
+                        <p class="small text-muted mt-2" t-esc="this.t('balanceScope')"/>
+                        <div class="table-responsive"><table class="table mb-0"><thead><tr><th><t t-esc="this.t('source')"/></th><th><t t-esc="this.t('available')"/></th><th><t t-esc="this.t('allocated')"/></th><th><t t-esc="this.t('remainder')"/></th><th><t t-esc="this.t('scenarioAvailableAt')"/></th></tr></thead>
+                            <tbody><t t-foreach="report.source_balances" t-as="balance" t-key="balance.source_ref">
+                                <tr t-if="balance.available or balance.allocated or balance.unallocated"><td><t t-esc="balance.order_ref ? balance.order_ref + ' / ' + balance.receipt_ref : this.t('unreservedStock')"/></td><td t-esc="this.number(balance.available)"/><td t-esc="this.number(balance.allocated)"/><td t-esc="this.number(balance.unallocated)"/><td t-esc="balance.scenario_available_at ? this.date(balance.scenario_available_at) : '—'"/></tr>
+                            </t></tbody>
+                        </table></div>
+                    </details>
+                    <p class="text-muted"><t t-esc="this.t('scope')"/></p>
+                    <details class="card card-body"><summary><t t-esc="this.t('evidence')"/></summary>
+                        <div class="table-responsive"><table class="table mt-2 mb-0"><thead><tr><th><t t-esc="this.t('source')"/></th><th><t t-esc="this.t('quantity')"/></th><th><t t-esc="this.t('reserved')"/></th><th><t t-esc="this.t('time')"/></th></tr></thead>
+                            <tbody><t t-foreach="report.evidence" t-as="item" t-key="item.ref"><tr>
+                                <td><button class="btn btn-link p-0" t-on-click="() => this.openRecord(item.model, item.id)"><t t-esc="this.sourceName(item.ref)"/></button></td>
+                                <td t-esc="this.number(item.quantity)"/><td t-esc="item.reserved === undefined ? '—' : this.number(item.reserved)"/>
+                                <td t-esc="item.at ? this.date(item.at) : this.date(report.taken_at)"/>
+                            </tr></t></tbody>
+                        </table></div>
+                    </details>
+                </t>
+                <details t-if="this.previousSnapshot" class="card card-body mb-3 mdic-scenario-history">
+                    <t t-set="previous" t-value="this.previousSnapshot"/>
+                    <summary><strong t-esc="this.t('historyTitle')"/> · <t t-esc="this.historyDate(previous.report.assumed_at,previous)"/></summary>
+                    <p class="small text-muted mt-2" t-esc="this.t('historyHelp')"/>
+                    <p><t t-esc="previous.report.order"/> · <t t-esc="previous.report.product"/> · <t t-esc="previous.report.unit"/></p>
+                    <p><t t-esc="this.t('historyArrival')"/>: <strong t-esc="this.historyDate(previous.report.assumed_at,previous)"/> · <t t-esc="this.t('historyRead')"/>: <t t-esc="this.historyDate(previous.report.taken_at,previous)"/> (<t t-esc="previous.timezone"/>)</p>
+                    <div class="table-responsive"><table class="table table-sm mdic-history-table"><thead><tr><th t-esc="this.t('mo')"/><th t-esc="this.t('historyNeed')"/><th t-esc="this.t('historyGap')"/><th t-esc="this.t('historyFull')"/><th t-esc="this.t('overviewFinal')"/></tr></thead>
+                        <tbody><tr t-foreach="previous.report.rows" t-as="row" t-key="row.ref"><td t-esc="row.mo"/><td t-esc="this.historyDate(row.need_at,previous)"/><td><t t-esc="this.knownNumber(row.delayed_shortage)"/> <t t-esc="previous.report.unit"/></td><td t-esc="this.coverageDate(row.full_at,row.need_at,row.delayed_shortage,previous)"/><td><t t-esc="this.knownNumber(row.unfilled)"/> <t t-esc="previous.report.unit"/></td></tr></tbody>
+                    </table></div>
+                    <t t-if="previous.previousOptions">
+                        <h3 t-esc="this.t('historyOptions')"/><p class="small text-muted"><t t-esc="this.t('historyRead')"/>: <t t-esc="this.historyDate(previous.previousOptions.taken_at,previous)"/></p>
+                        <article class="mdic-history-option" t-foreach="previous.previousOptions.options" t-as="option" t-key="option.id">
+                            <h4 t-esc="option.title"/><p t-esc="option.summary"/><ul><li t-foreach="option.orders" t-as="text" t-key="text_index" t-esc="text"/></ul>
+                            <t t-if="option.moves.length"><h4 t-esc="this.t('historyMoves')"/><ul><li t-foreach="option.moves" t-as="text" t-key="text_index" t-esc="text"/></ul></t>
+                        </article>
+                    </t>
+                </details>
+            </div>
+        </div>
+    </t>
+</templates>

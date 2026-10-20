@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+  <t t-name="material_delay_impact.ReviewShortcut"><div class="d-flex align-items-center"><button class="btn border-0" t-att-title="words.title" t-att-aria-label="words.title" t-on-click="open"><i class="fa fa-clipboard" aria-hidden="true"/></button></div></t>
+  <t t-name="material_delay_impact.ReviewInbox">
+    <div class="h-100 overflow-auto p-3 mdic-review-inbox">
+      <h1 t-esc="words.title"/><p t-esc="words.intro"/>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <button t-att-class="state.completed ? 'btn btn-outline-primary' : 'btn btn-primary'" t-att-disabled="state.busy" t-on-click="() => this.load(false)" t-esc="words.pending"/>
+        <button t-att-class="state.completed ? 'btn btn-primary' : 'btn btn-outline-primary'" t-att-disabled="state.busy" t-on-click="() => this.load(true)" t-esc="words.done"/>
+        <button class="btn btn-outline-secondary" t-att-disabled="state.busy" t-on-click="() => this.load()" t-esc="words.refresh"/>
+      </div>
+      <p t-if="state.busy" role="status" t-esc="words.loading"/>
+      <p t-if="state.error" class="alert alert-warning" role="alert" t-esc="state.error"/>
+      <p t-if="!state.busy and !state.error and !state.items.length" t-esc="state.completed ? words.emptyDone : words.empty"/>
+      <article t-foreach="state.items" t-as="item" t-key="item.id" class="card card-body mb-3">
+        <h2 class="h5"><t t-esc="item.order"/> · <t t-esc="item.material"/></h2>
+        <p t-esc="item.summary"/><p><strong t-esc="this.status(item)"/> · <t t-esc="words.due"/>: <t t-esc="item.due"/></p>
+        <p t-if="item.feedback" class="text-break" t-esc="item.feedback"/>
+        <div><button class="btn btn-primary" t-att-disabled="state.busy" t-on-click="() => this.open(item)" t-esc="words.open"/></div>
+      </article>
+      <p t-if="state.truncated" class="alert alert-info" t-esc="words.more"/>
+    </div>
+  </t>
+</templates>

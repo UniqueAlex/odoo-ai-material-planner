@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="material_delay_impact.Reallocation">
+        <section class="card card-body mb-3 mdic-automatic-options">
+            <h2 t-esc="this.t('autoTitle')"/><p t-esc="this.t('autoIntro')"/>
+            <details t-if="!this.props.shared" class="mdic-priority-guide mb-2"><summary t-esc="this.t('priorityGuide')"/>
+                <p class="mt-2" t-esc="this.t('priorityHelp')"/>
+                <div class="d-flex flex-wrap gap-3"><t t-foreach="this.priorityOrders" t-as="row" t-key="row.ref">
+                    <button t-if="this.autoRecord(row.ref)" class="btn btn-link p-0 mdic-priority-order-link" t-on-click="() => this.openAutoRecord(row.ref)" t-esc="row.mo"/><span t-else="" t-esc="row.mo"/>
+                </t></div>
+            </details>
+            <p t-if="this.noAdjustmentNeeded" class="mdic-no-adjustment text-success" role="status" t-esc="this.t('noAdjustment')"/>
+            <button t-if="!this.props.shared" class="btn align-self-start mdic-auto-recommend" t-att-class="this.noAdjustmentNeeded ? 'btn-outline-secondary' : 'btn-primary'" t-on-click="this.recommend" t-att-disabled="this.state.busy or this.state.aiBusy" t-esc="this.t(this.noAdjustmentNeeded ? 'inspectOptions' : (this.props.configured ? 'auto' : 'autoNoAI'))"/>
+            <p t-if="this.state.busy" class="mt-2" role="status" t-esc="this.t('loading')"/>
+            <p t-if="this.state.autoError" role="alert" class="mt-2 text-danger" t-esc="this.state.autoError"/>
+            <t t-if="this.state.automatic">
+                <div class="alert mt-2 mdic-freshness" t-att-class="this.factsOutdated() ? 'alert-warning' : 'alert-light'" role="status">
+                    <p class="mb-1" t-esc="this.freshnessText()"/>
+                    <small t-if="this.reviews.checkedAt" t-esc="this.reviews.checkedAt"/>
+                    <button class="btn btn-outline-secondary btn-sm ms-2" t-att-disabled="this.reviews.busy" t-on-click="() => this.refreshReviews()" t-esc="this.freshnessText('refresh')"/>
+                    <button t-if="!this.props.shared and this.factsOutdated()" class="btn btn-primary btn-sm ms-2" t-att-disabled="this.state.busy or this.state.aiBusy" t-on-click="() => this.recommend(false)" t-esc="this.freshnessText('recalculate')"/>
+                </div>
+                <p class="small text-muted mt-2"><t t-esc="this.t('read')"/>: <t t-esc="this.date(this.state.automatic.report.taken_at)"/></p>
+                <p t-if="!this.noAdjustmentNeeded and this.state.automatic.automatic.priority_basis === 'no_distinct_high_priority'" class="small" t-esc="this.t('noPriority')"/>
+                <p t-if="!this.state.automatic.automatic.alternatives.length" t-esc="this.t('noDemand')"/>
+                <p t-elif="!this.props.shared and !this.noAdjustmentNeeded and this.state.automatic.ai_recommendation.status === 'not_requested'" class="text-muted mdic-auto-ai-status" t-esc="this.t('aiNotRequested')"/>
+                <p t-elif="!this.props.shared and !this.noAdjustmentNeeded and this.state.automatic.ai_recommendation.status !== 'verified_structured_options'" class="text-muted mdic-auto-ai-status" t-esc="this.t(this.state.automatic.ai_recommendation.code === 'interrupted' ? 'interrupted' : 'aiNotReady')"/>
+                <details t-if="this.noAdjustmentNeeded" class="mdic-covered-comparison" open="open"><summary t-esc="this.t('evidence')"/>
+                    <div class="table-responsive"><table class="table table-sm"><thead><tr><th t-esc="this.t('mo')"/><th t-esc="this.t('need')"/><th t-esc="this.t('shortage')"/><th t-esc="this.t('full')"/></tr></thead><tbody>
+                        <tr t-foreach="this.state.automatic.report.rows" t-as="row" t-key="row.ref"><td><button t-if="this.autoRecord(row.ref)" class="btn btn-link p-0" t-on-click="() => this.openAutoRecord(row.ref)" t-esc="row.mo"/><span t-else="" t-esc="row.mo"/></td><td t-esc="this.date(row.need_at)"/><td><t t-esc="this.number(row.delayed_shortage)"/> <t t-esc="this.state.automatic.report.unit"/></td><td t-esc="this.coverageDate(row.full_at,row.need_at,row.shortage_at_due ?? row.delayed_shortage)"/></tr>
+                    </tbody></table></div>
+                </details>
+                <div t-else="" class="row g-3 mt-1">
+                    <article class="col-12 col-xl-6" t-foreach="this.state.automatic.automatic.alternatives" t-as="option" t-key="option.id">
+                        <div class="border rounded p-3 mdic-option-card">
+                            <div class="mdic-option-heading"><h3 t-esc="this.optionTitle(option)"/>
+                                <button class="btn btn-outline-primary mdic-copy-option" t-on-click="() => this.copyOption(option)" t-esc="this.copyLabel('summary')"/>
+                                <button class="btn btn-outline-secondary mdic-copy-full" t-on-click="() => this.copyOption(option,'full')" t-esc="this.copyLabel('full')"/>
+                            </div>
+                            <div t-if="this.currentDecision(option)" class="alert alert-secondary mdic-current-decision"><strong><t t-esc="this.decisionText('title')"/>：<t t-esc="this.decisionText(this.currentDecision(option).decision)"/></strong><p class="mb-0" t-esc="this.currentDecision(option).feedback"/></div>
+                            <section t-if="this.myTargets(option).length" class="mdic-my-reviews border border-primary rounded p-3 my-3">
+                                <h4><t t-esc="this.focusText('mine')"/> · <t t-esc="this.myProgress(option)"/></h4>
+                                <div t-foreach="this.myTargets(option)" t-as="target" t-key="target.key" class="mb-2">
+                                    <t t-set="review" t-value="this.currentTargetReview(option,target)"/>
+                                    <strong t-esc="review.summary"/><span class="badge ms-2" t-att-class="'bg-' + this.reviewTone(review)" t-esc="review.done ? this.rt('done') + ' · ' + this.ux(this.outcome(review)) : this.rt('pending')"/>
+                                    <p t-if="review.feedback" class="small mb-1" style="white-space:pre-wrap" t-esc="review.feedback.slice(0,180)"/>
+                                    <button class="btn btn-link p-0" t-on-click="(ev) => this.focusReview(ev,target)" t-esc="this.focusText('open')"/>
+                                </div>
+                            </section>
+                            <div class="mdic-option-goals"><span t-foreach="option.strategies" t-as="strategy" t-key="strategy" class="badge rounded-pill text-bg-light" t-esc="this.t(strategy)"/></div>
+                            <p t-if="this.markedPriorityNames" class="mdic-priority-names mt-2"><t t-esc="this.t('priorityNames')"/>: <strong t-esc="this.markedPriorityNames"/></p>
+                            <div t-if="this.state.handoffOption === option.id" class="mdic-handoff-output"><p role="status" t-esc="this.state.copyStatus"/>
+                                <details t-att-open="this.state.copyManual"><summary t-esc="this.handoffLabel(this.state.handoffMode)"/><textarea class="form-control mdic-handoff-text" readonly="readonly" rows="8" t-att-aria-label="this.handoffLabel(this.state.handoffMode)" t-esc="this.state.handoffText"/></details>
+                            </div>
+                            <h4 t-esc="this.t('benefits')"/>
+                            <p t-if="!option.comparison.impacts.some(i => i.change !== 'unchanged')" t-esc="this.t('noChange')"/>
+                            <ul class="mdic-option-impacts mdic-option-tradeoffs-first"><t t-foreach="option.comparison.impacts" t-as="impact" t-key="impact.ref"><li t-if="impact.change !== 'unchanged'" t-att-class="'mdic-impact-' + impact.change">
+                                <div class="mdic-impact-heading"><button t-if="this.autoRecord(impact.ref)" class="btn btn-link p-0 fw-bold mdic-option-order-link" t-on-click="() => this.openAutoRecord(impact.ref)" t-esc="this.autoName(impact.ref)"/><strong t-else="" t-esc="this.autoName(impact.ref)"/><strong class="mdic-impact-badge" t-esc="this.t(impact.change)"/></div>
+                                <p class="mb-0 mdic-impact-summary" t-esc="this.impactSummary(impact)"/>
+                            </li></t></ul>
+                            <section t-if="option.decision_support?.production_evidence?.length" class="mdic-production-evidence">
+                                <h4 t-esc="this.t('productionEvidence')"/>
+                                <div t-foreach="option.decision_support.production_evidence" t-as="item" t-key="item.ref">
+                                    <button t-if="this.autoRecord(item.ref)" class="btn btn-link p-0 fw-bold" t-on-click="() => this.openAutoRecord(item.ref)" t-esc="this.autoName(item.ref)"/><strong t-else="" t-esc="this.autoName(item.ref)"/>
+                                    <p class="mb-1" t-esc="this.productionEvidenceText(item)"/><p class="fw-bold mb-1" t-esc="this.nativeReadyText(item)"/>
+                                <p class="small mb-0 mdic-production-review" t-esc="this.productionReviewText(option,item,true)"/></div>
+                            </section>
+                            <div class="alert mdic-review-assessment" t-att-class="'alert-' + this.reviewAssessment(option).tone"><strong t-esc="this.ux('summary')"/>：<t t-esc="this.reviewAssessment(option).text"/><ul t-if="this.reviewAssessment(option).blocked.length" class="mb-0"><li t-foreach="this.reviewAssessment(option).blocked" t-as="blocked" t-key="blocked.id"><t t-esc="this.reviewSubject(option,blocked)"/></li></ul></div>
+                            <p class="mdic-key-blocker"><strong t-esc="this.rt('progress')"/>：<t t-esc="this.keyBlocker(option,true)"/></p>
+                            <p class="small text-muted mb-1" t-esc="this.t('computedSummary')"/>
+                            <p class="mdic-option-summary" t-esc="this.autoSummary(option)"/>
+                            <div class="mdic-option-metrics">
+                                <div class="mdic-option-wait mdic-option-metric" t-att-class="'mdic-signal-' + this.metricTone(option.comparison.material_wait_before_seconds,option.comparison.material_wait_after_seconds)">
+                                    <span class="mdic-metric-label" t-esc="this.t('wait')"/>
+                                    <div class="mdic-metric-values"><span class="mdic-before" t-esc="this.hours(option.comparison.material_wait_before_seconds)"/> → <strong t-esc="this.hours(option.comparison.material_wait_after_seconds)"/></div>
+                                    <span class="mdic-change-label" t-esc="this.metricChange(option.comparison.material_wait_before_seconds,option.comparison.material_wait_after_seconds)"/>
+                                </div>
+                                <div class="mdic-option-metric mdic-option-late-count" t-att-class="'mdic-signal-' + this.metricTone(this.autoLateBefore,option.metrics.late_orders)">
+                                    <span class="mdic-metric-label" t-esc="this.t('lateCount')"/>
+                                    <div class="mdic-metric-values"><span class="mdic-before" t-esc="this.autoLateBefore"/> → <strong t-esc="option.metrics.late_orders"/></div>
+                                    <span class="mdic-change-label" t-esc="this.metricChange(this.autoLateBefore,option.metrics.late_orders)"/>
+                                </div>
+                                <div class="mdic-option-metric mdic-option-residual" t-att-class="'mdic-signal-' + this.valueTone(option.comparison.unfilled)">
+                                    <span class="mdic-metric-label" t-esc="this.t('final')"/>
+                                    <strong class="mdic-metric-values"><t t-esc="this.number(option.comparison.unfilled)"/> <t t-esc="this.state.automatic.report.unit"/></strong>
+                                </div>
+                            </div>
+                            <details class="mdic-adoption mb-3"><summary t-esc="this.t('conditionDetails')"/>
+                                <h4 t-esc="this.t('adoption')"/>
+                                <p class="fw-bold mdic-decision-status" t-esc="this.reviewAssessment(option).text"/>
+                                <ul t-if="option.decision_support"><li t-foreach="option.decision_support.conditions" t-as="condition" t-key="condition_index">
+                                    <t t-esc="this.itemReviewText(option,condition,true)"/>
+                                </li></ul>
+                            </details>
+                            <h4 t-esc="this.t('steps')"/>
+                            <p t-if="!option.comparison.plan.transfers.length" t-esc="this.t('keep')"/>
+                            <ul t-else=""><li t-foreach="option.comparison.plan.transfers" t-as="move" t-key="move_index">
+                                <button t-if="this.autoRecord(move.source_ref)" class="btn btn-link p-0 text-start mdic-option-source-link" t-on-click="() => this.openAutoRecord(move.source_ref)" t-esc="this.autoSource(move.source_ref)"/><span t-else="" t-esc="this.autoSource(move.source_ref)"/> ·
+                                <button t-if="this.autoRecord(move.donor_ref)" class="btn btn-link p-0 fw-bold mdic-option-order-link" t-on-click="() => this.openAutoRecord(move.donor_ref)" t-esc="this.autoName(move.donor_ref)"/><strong t-else="" t-esc="this.autoName(move.donor_ref)"/> →
+                                <button t-if="this.autoRecord(move.receiver_ref)" class="btn btn-link p-0 fw-bold mdic-option-order-link" t-on-click="() => this.openAutoRecord(move.receiver_ref)" t-esc="this.autoName(move.receiver_ref)"/><strong t-else="" t-esc="this.autoName(move.receiver_ref)"/> · <strong class="mdic-transfer-quantity"><t t-esc="this.number(move.quantity)"/> <t t-esc="this.state.automatic.report.unit"/></strong>
+                            </li></ul>
+                            <section t-if="option.decision_support" class="mdic-coordination mt-3 mb-3">
+                                <h4 t-esc="this.t('roleTasks')"/><p class="small text-muted" t-esc="this.rt('targetHelp')"/>
+                                <button class="btn btn-link p-0 mb-2" t-att-disabled="this.reviews.busy" t-on-click="() => this.refreshReviews()" t-esc="this.rt('refresh')"/>
+                                <p t-if="this.reviews.error" role="alert" class="text-danger" t-esc="this.reviews.error"/>
+                                <p t-if="this.reviews.truncated" class="text-warning" t-esc="this.rt('limit')"/>
+                                <details t-foreach="this.coordinationGroups(option)" t-as="group" t-key="group.role" class="mdic-role-group mb-2">
+                                    <summary><strong t-esc="this.t(group.role)"/> · <t t-esc="this.focusText('all')"/> · <t t-esc="this.groupProgress(option,group)"/> · <t t-esc="this.focusText('unassigned')"/> <t t-esc="this.unassignedCount(option,group)"/></summary>
+                                    <div t-foreach="group.targets" t-as="target" t-key="target.key" class="mdic-review-target border rounded p-3 my-2" t-att-data-target-key="target.key" tabindex="-1">
+                                        <p t-foreach="target.conditions" t-as="condition" t-key="condition_index"><t t-esc="this.itemReviewText(option,condition,true)"/></p>
+                                        <div t-foreach="target.actions" t-as="item" t-key="item_index" class="mdic-coordination-item"><p t-esc="this.conditionReview(option,item)?.done ? this.itemReviewText(option,item,true) : this.coordinationText(item)"/>
+                                            <button t-if="this.autoRecord(item.ref)" class="btn btn-link p-0 me-3" t-on-click="() => this.openAutoRecord(item.ref)" t-esc="this.autoName(item.ref)"/><button t-if="this.autoRecord(item.source_ref)" class="btn btn-link p-0" t-on-click="() => this.openAutoRecord(item.source_ref)" t-esc="this.autoSource(item.source_ref)"/>
+                                        </div>
+                                        <t t-set="review" t-value="this.currentTargetReview(option,target)"/>
+                                        <t t-if="review"><t t-call="material_delay_impact.ReviewRecord"/></t>
+                                        <form t-if="review and this.feedbackEditor.id === review.id" t-on-submit="this.submitSharedFeedback" class="mdic-shared-feedback my-2">
+                                            <label class="d-block"><t t-esc="this.ux('outcome')"/><select class="form-select" t-model="this.feedbackEditor.outcome"><option value="unknown" t-esc="this.ux('unknown')"/><option value="met" t-esc="this.ux('met')"/><option value="not_met" t-esc="this.ux('not_met')"/></select></label>
+                                            <label class="d-block"><t t-esc="this.rt('feedback')"/><textarea class="form-control" t-model="this.feedbackEditor.feedback" maxlength="2000" required="required"/></label>
+                                            <p class="small" t-esc="this.feedbackText('help')"/><p t-if="this.feedbackEditor.error" class="text-danger" role="alert" t-esc="this.feedbackEditor.error"/>
+                                            <button type="submit" class="btn btn-primary" t-att-disabled="this.feedbackEditor.busy" t-esc="this.feedbackText('save')"/><button type="button" class="btn btn-link" t-on-click="() => this.feedbackEditor.id=null" t-esc="this.feedbackText('cancel')"/>
+                                        </form>
+                                        <span t-if="!review" class="badge text-bg-light" t-esc="this.ux('unassigned')"/>
+                                        <details t-if="this.targetReviews(option,target).some(t => this.reviewStale(t))" class="mt-2"><summary t-esc="this.ux('history')"/>
+                                            <t t-foreach="this.targetReviews(option,target).filter(t => this.reviewStale(t))" t-as="review" t-key="review.id"><t t-call="material_delay_impact.ReviewRecord"/><button t-if="this.canOpenReview(review)" class="btn btn-link btn-sm" t-on-click="() => this.openReview(review)" t-esc="this.rt('open')"/></t>
+                                        </details>
+                                        <button t-if="!this.props.shared or this.canOpenReview(this.currentTargetReview(option,target))" class="btn btn-outline-primary mdic-role-task mt-2" t-on-click="() => this.saveReview(option,target)" t-esc="this.currentTargetReview(option,target) ? this.rt('open') : this.rt('create')"/>
+                                    </div>
+                                </details>
+                            </section>
+                            <details t-if="this.extraReviews(option).length" class="mdic-review-progress my-3"><summary t-esc="this.ux('other')"/>
+                                <t t-foreach="this.extraReviews(option)" t-as="review" t-key="review.id"><strong t-esc="review.summary"/><t t-call="material_delay_impact.ReviewRecord"/><button t-if="this.canOpenReview(review)" class="btn btn-outline-primary btn-sm" t-on-click="() => this.openReview(review)" t-esc="this.rt('open')"/></t>
+                            </details>
+                            <p class="small text-muted" t-esc="this.rt('scope')"/>
+                            <t t-if="this.autoModule(option) and this.autoModule(option).checks.length"><h4 t-esc="this.rt('progress')"/><ul><li t-foreach="this.autoModule(option).checks" t-as="check" t-key="check_index">
+                                <t t-foreach="check.refs" t-as="ref" t-key="ref"><t t-if="!ref_first"> · </t><t t-esc="this.checkReviewText(option,check,ref,true)"/></t>
+                            </li></ul></t>
+                            <section class="mdic-option-decision border rounded p-3 my-3">
+                                <h4 t-esc="this.decisionText('title')"/>
+                                <t t-set="decision" t-value="this.currentDecision(option)"/>
+                                <div t-if="decision" class="mdic-decision-record"><strong t-esc="this.decisionText(decision.decision)"/><p style="white-space:pre-wrap" t-esc="decision.feedback"/><p class="small"><t t-esc="decision.owner"/> · <t t-esc="this.reviewTime(decision.updated)"/></p></div>
+                                <p t-else="" t-esc="this.decisionText('none')"/>
+                                <t t-set="draft" t-value="this.decisionDraft(option)"/>
+                                <button t-if="!this.props.shared and decision and !draft.editing" class="btn btn-outline-primary" t-on-click="() => this.editDecision(option)" t-esc="this.decisionText('edit')"/>
+                                <form t-if="!this.props.shared and (!decision or draft.editing)" t-on-submit="(ev) => this.recordDecision(option,ev)">
+                                    <label class="d-block"><t t-esc="this.decisionText('title')"/><select name="choice" t-model="draft.choice" class="form-select" required="required"><option value="defer" t-esc="this.decisionText('defer')"/><option value="reject" t-esc="this.decisionText('reject')"/><option value="adopt" t-esc="this.decisionText('adopt')"/></select></label>
+                                    <label class="d-block mt-2"><t t-esc="this.decisionText('reason')"/><textarea name="reason" t-model="draft.reason" class="form-control" rows="2" maxlength="2000" required="required"/></label>
+                                    <button type="submit" class="btn btn-outline-primary mt-2" t-esc="this.decisionText('save')"/>
+                                    <button t-if="decision" type="button" class="btn btn-link mt-2" t-on-click="() => this.cancelDecision(option)" t-esc="this.decisionText('cancel')"/>
+                                    <p t-if="this.state.decisionError?.option === option.id" class="text-danger mt-2" role="alert" t-esc="this.state.decisionError.text"/>
+                                </form>
+                                <p class="small text-muted mt-2" t-esc="this.decisionText('help')"/>
+                                <button class="btn btn-link" t-if="!this.props.shared" t-on-click="this.openReviews" t-esc="this.t('followReview')"/>
+                            </section>
+                            <details class="mdic-option-details"><summary t-esc="this.t('evidence')"/>
+                                <div class="table-responsive"><table class="table table-sm mt-2"><thead><tr><th t-esc="this.t('mo')"/><th t-esc="this.t('need')"/><th t-esc="this.t('shortage')"/><th t-esc="this.t('full')"/><th t-esc="this.t('final')"/></tr></thead>
+                                    <tbody><tr t-foreach="this.autoRows(option)" t-as="row" t-key="row.ref"><td t-esc="this.autoName(row.ref)"/><td t-esc="this.date(row.need_at)"/><td><t t-esc="this.number(row.impact.shortage_before)"/> → <t t-esc="this.number(row.shortage_at_due)"/></td><td><t t-esc="this.coverageDate(row.impact.full_at_before,row.need_at,row.impact.shortage_before)"/> → <t t-esc="this.coverageDate(row.full_at,row.need_at,row.shortage_at_due ?? row.delayed_shortage)"/></td><td t-esc="this.number(row.unfilled)"/></tr></tbody>
+                                </table></div>
+                            </details>
+                            <details t-if="this.autoModule(option)" class="mdic-option-ai-review mt-2"><summary t-esc="this.t(this.state.automatic.ai_recommendation.interpretation_contract ? 'aiFacts' : 'aiExtra')"/>
+                                <p class="small text-muted mt-2" t-esc="this.t(this.state.automatic.ai_recommendation.interpretation_contract ? 'aiFactsHelp' : 'aiExtraHelp')"/>
+                                <p class="mdic-option-rationale" t-esc="this.autoModule(option).rationale"/>
+                            </details>
+                        </div>
+                    </article>
+                </div>
+                <p t-if="!this.noAdjustmentNeeded" class="small text-muted mt-3" t-esc="this.t('autoScope')"/>
+                <p t-if="!this.noAdjustmentNeeded" class="small text-muted" t-esc="this.t('caveat')"/>
+                <p t-if="this.state.automatic.ai_recommendation.status === 'verified_structured_options'" class="small text-muted" t-esc="this.t('aiPendingReview')"/>
+            </t>
+        </section>
+        <details t-if="!this.props.shared" class="mdic-manual-simulation mb-3"><summary class="mb-2" t-esc="this.t('manual')"/>
+        <section class="card card-body mb-3 mdic-reallocation">
+            <h2 t-esc="this.t('title')"/><p t-esc="this.t('intro')"/>
+            <button class="btn btn-outline-primary align-self-start mdic-prepare-reallocation" t-on-click="this.prepare" t-att-disabled="this.state.busy or this.state.aiBusy" t-esc="this.t(this.state.prepared ? 'refresh' : 'open')"/>
+            <p t-if="this.state.busy" class="mt-2" role="status" t-esc="this.t('loading')"/>
+            <p t-if="this.state.error" class="text-danger mt-2" role="alert" t-esc="this.state.error"/>
+            <t t-if="this.state.prepared">
+                <p class="small text-muted mt-2"><t t-esc="this.t('read')"/>: <t t-esc="this.date(this.state.prepared.report.taken_at)"/> · <t t-esc="this.state.prepared.report.unit"/></p>
+                <p t-if="!this.targets.length" t-esc="this.t('noDemand')"/>
+                <div class="row g-3 mt-1" t-if="this.targets.length">
+                    <label class="col-12 col-lg-5"><span class="d-block mb-1" t-esc="this.t('receiver')"/>
+                        <select class="form-select mdic-reallocation-receiver" t-att-disabled="this.state.busy or this.state.aiBusy" t-on-change="this.onReceiver" t-att-value="this.state.receiver">
+                            <option value="" t-esc="this.t('choose')"/><option t-foreach="this.targets" t-as="row" t-key="row.ref" t-att-value="row.ref"><t t-esc="row.mo"/> · <t t-esc="this.date(row.need_at)"/></option>
+                        </select>
+                    </label>
+                    <label class="col-12 col-lg-7"><span class="d-block mb-1" t-esc="this.t('candidate')"/>
+                        <select class="form-select mdic-reallocation-candidate" t-att-disabled="this.state.busy or this.state.aiBusy or !this.state.candidates.length" t-on-change="this.onCandidate" t-att-value="this.state.selected">
+                            <option value="" t-esc="this.t('choose')"/><option t-foreach="this.state.candidates" t-as="candidate" t-key="candidate_index" t-att-value="candidate_index"><t t-esc="this.source(candidate.source_ref)"/> · <t t-esc="this.name(candidate.donor_ref)"/> · <t t-esc="this.number(candidate.quantity)"/> <t t-esc="this.state.prepared.report.unit"/> · <t t-esc="this.date(candidate.available_at)"/></option>
+                        </select>
+                    </label>
+                    <p t-if="this.state.receiver and !this.state.busy and !this.state.candidates.length" class="col-12" t-esc="this.t('noCandidates')"/>
+                    <t t-if="this.state.selected !== ''">
+                        <t t-set="selected" t-value="this.state.candidates[+this.state.selected]"/>
+                        <p class="col-12 mb-0" t-att-class="selected.available_by_receiver_need ? 'text-success' : 'text-warning'">
+                            <t t-esc="this.t(selected.available_by_receiver_need ? 'timely' : 'late')"/><t t-if="!selected.may_improve_known_coverage_time"> · <t t-esc="this.t('noEarlier')"/></t>
+                        </p>
+                        <label class="col-12 col-sm-5"><span class="d-block" t-esc="this.t('qty')"/><input type="text" inputmode="decimal" class="form-control mdic-reallocation-quantity" t-att-value="this.state.quantity" t-on-input="this.onQuantity" t-att-disabled="this.state.busy or this.state.aiBusy"/></label>
+                        <div class="col-12 col-sm-7 align-self-end"><button class="btn btn-outline-primary mdic-add-transfer" t-on-click="this.add" t-att-disabled="this.state.busy or this.state.aiBusy" t-esc="this.t('add')"/></div>
+                    </t>
+                </div>
+                <h3 class="mt-3" t-esc="this.t('plan')"/>
+                <p t-if="!this.state.plan.length" t-esc="this.t('empty')"/>
+                <ul t-else="" class="mdic-transfer-plan"><li t-foreach="this.state.plan" t-as="transfer" t-key="transfer_index" class="mb-2">
+                    <t t-esc="this.source(transfer.source_ref)"/> · <t t-esc="this.name(transfer.donor_ref)"/> → <t t-esc="this.name(transfer.receiver_ref)"/> · <t t-esc="this.number(transfer.quantity)"/> <t t-esc="this.state.prepared.report.unit"/>
+                    <button class="btn btn-link btn-sm" t-on-click="() => this.remove(transfer_index)" t-att-disabled="this.state.busy or this.state.aiBusy" t-esc="this.t('remove')"/>
+                </li></ul>
+                <button class="btn btn-primary align-self-start mdic-compare-transfers" t-on-click="this.compare" t-att-disabled="this.state.busy or this.state.aiBusy or !this.state.plan.length" t-esc="this.t('compare')"/>
+                <t t-if="this.state.comparison">
+                    <p class="mt-3 small" t-esc="this.t('rowsHelp')"/>
+                    <div class="table-responsive mdic-reallocation-comparison"><table class="table table-sm"><thead><tr>
+                        <th rowspan="2" t-esc="this.t('mo')"/><th rowspan="2" t-esc="this.t('need')"/>
+                        <th colspan="2" t-esc="this.t('before')"/><th colspan="3" t-esc="this.t('after')"/><th rowspan="2" t-esc="this.t('change')"/>
+                    </tr><tr><th t-esc="this.t('shortage')"/><th t-esc="this.t('full')"/><th t-esc="this.t('shortage')"/><th t-esc="this.t('full')"/><th t-esc="this.t('final')"/></tr></thead>
+                    <tbody><tr t-foreach="this.resultRows" t-as="row" t-key="row.ref" t-att-class="row.impact.change === 'worsened' ? 'table-warning' : ''">
+                        <td t-esc="this.name(row.ref)"/><td t-esc="this.date(row.need_at)"/><td t-esc="this.number(row.before.delayed_shortage)"/><td t-esc="this.coverageDate(row.impact.full_at_before,row.need_at,row.impact.shortage_before)"/>
+                        <td t-esc="this.number(row.shortage_at_due)"/><td t-esc="this.coverageDate(row.full_at,row.need_at,row.shortage_at_due ?? row.delayed_shortage)"/><td t-esc="this.number(row.unfilled)"/><td t-esc="this.t(row.impact.change)"/>
+                    </tr></tbody></table></div>
+                    <p class="mdic-material-wait"><strong t-esc="this.t('wait')"/>: <t t-esc="this.hours(this.state.comparison.material_wait_before_seconds)"/> → <t t-esc="this.hours(this.state.comparison.material_wait_after_seconds)"/></p>
+                    <p class="small text-muted" t-esc="this.t('caveat')"/>
+                    <p t-if="!this.state.prepared.ai_interpretation_enabled" class="text-muted mdic-reallocation-ai-blocked" t-esc="this.t('aiBlocked')"/>
+                    <button t-elif="this.props.configured" class="btn btn-outline-primary align-self-start mdic-reallocation-ai" t-on-click="this.explain" t-att-disabled="this.state.busy or this.state.aiBusy or !!this.state.error" t-esc="this.t('ai')"/>
+                    <p t-else="" class="text-muted" t-esc="this.t('configured')"/>
+                    <p t-if="this.state.aiBusy" role="status" t-esc="this.t('aiRunning')"/>
+                    <p t-if="this.state.aiError" role="alert" class="text-danger" t-esc="this.state.aiError"/>
+                    <details t-if="this.state.ai" class="mt-3 mdic-reallocation-ai-review"><summary t-esc="this.t('aiReview')"/><p class="small text-muted mt-2" t-esc="this.t('aiHelp')"/>
+                        <p t-esc="this.state.ai.report.summary"/><p t-foreach="this.state.ai.report.tradeoffs" t-as="item" t-key="item_index" t-esc="item"/>
+                        <t t-if="this.state.ai.report.checks.length"><h3 t-esc="this.t('checks')"/><ul><li t-foreach="this.state.ai.report.checks" t-as="item" t-key="item_index" t-esc="item"/></ul></t>
+                    </details>
+                </t>
+            </t>
+        </section>
+        </details>
+    </t>
+    <t t-name="material_delay_impact.ReviewRecord">
+        <div class="mdic-review-record border-top py-2">
+            <span class="badge bg-secondary me-2" t-esc="this.reviewStale(review) ? this.rt('stale') : this.rt(review.done ? 'done' : 'pending')"/>
+            <span t-if="review.decision" class="badge bg-secondary" t-esc="this.decisionText(review.decision)"/><span t-else="" t-att-class="'badge bg-' + this.reviewTone(review)"><t t-esc="this.ux(review.done ? 'outcome' : 'draftOutcome')"/>：<t t-esc="this.ux(this.outcome(review))"/></span>
+            <p class="mb-1 mt-1"><t t-esc="this.rt('owner')"/>：<t t-esc="review.owner"/> · <t t-esc="this.rt('due')"/>：<t t-esc="review.due"/></p>
+            <p t-if="this.reviewStale(review)" class="small mb-1"><t t-esc="this.rt('history')"/>：<t t-esc="this.reviewTime(review.arrival)"/></p>
+            <p class="mb-1" style="white-space:pre-wrap;overflow-wrap:anywhere"><t t-esc="this.ux('short')"/>：<t t-esc="(review.feedback || this.rt('noFeedback')).slice(0,180)"/><t t-if="review.feedback?.length > 180">…</t></p>
+            <details t-if="review.feedback?.length > 180"><summary t-esc="this.ux('more')"/><p style="white-space:pre-wrap;overflow-wrap:anywhere" t-esc="review.feedback"/></details>
+            <p class="small text-muted mb-1"><t t-esc="this.rt('updated')"/>：<t t-esc="this.reviewTime(review.updated)"/></p>
+        </div>
+    </t>
+</templates>

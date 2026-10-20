@@ -1,0 +1,107 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Material Delay Impact 19.0\n"
+"Language: zh_CN\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: material_delay_impact
+#. odoo-python
+#: code:addons/material_delay_impact/models/purchase_order.py:0
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.purchase_order_delay_impact
+msgid "Delay impact"
+msgstr "延期分析"
+
+#. module: material_delay_impact
+#: model:ir.actions.client,name:material_delay_impact.mdic_my_reviews_action
+#: model:ir.ui.menu,name:material_delay_impact.mdic_stock_reviews
+#: model:ir.ui.menu,name:material_delay_impact.mdic_purchase_reviews
+msgid "My plan reviews"
+msgstr "我的方案核实"
+
+#. module: material_delay_impact
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.mdic_activity_plan_entry
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.mdic_review_activity_form
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.purchase_order_delay_impact
+msgid "Open shared plan"
+msgstr "打开共同方案"
+
+#. module: material_delay_impact
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.mdic_activity_plan_entry
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.mdic_review_activity_form
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.purchase_order_delay_impact
+msgid "Material impact and shared plan"
+msgstr "材料影响与共同方案"
+
+#. module: material_delay_impact
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.mdic_activity_plan_entry
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.mdic_review_activity_form
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.purchase_order_delay_impact
+msgid "Verification feedback"
+msgstr "核实反馈"
+
+#. module: material_delay_impact
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.mdic_activity_plan_entry
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.mdic_review_activity_form
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.purchase_order_delay_impact
+msgid "Save feedback and complete review"
+msgstr "保存反馈并完成核实"
+
+#. module: material_delay_impact
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.mdic_activity_plan_entry
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.mdic_review_activity_form
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.purchase_order_delay_impact
+msgid "Conclusion, evidence and next step. Completion does not adopt or execute a transfer."
+msgstr "结论、依据、下一步；完成核实不代表已采用或执行调料。"
+
+#. module: material_delay_impact
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.mdic_activity_plan_entry
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.mdic_review_activity_form
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.purchase_order_delay_impact
+msgid "Verify whether this specific arrangement is feasible. Transfer reviews must confirm permission to move materials; partial production readiness alone does not grant permission. Completing this review does not approve the whole option."
+msgstr "请判断本待办要求的安排能否落实。调料核实应回答是否允许调走材料；能部分投产不代表允许调走。完成核实不等于批准整个方案。"
+
+#. module: material_delay_impact
+#: model:ir.model.fields.selection,name:material_delay_impact.selection__mail_activity__mdic_decision__adopt
+msgid "Adopt"
+msgstr "决定采用"
+
+#. module: material_delay_impact
+#: model:ir.model.fields.selection,name:material_delay_impact.selection__mail_activity__mdic_decision__reject
+msgid "Reject"
+msgstr "不采用"
+
+#. module: material_delay_impact
+#: model:ir.model.fields.selection,name:material_delay_impact.selection__mail_activity__mdic_decision__defer
+msgid "Defer decision"
+msgstr "暂缓决定"
+
+#. module: material_delay_impact
+#: model:ir.model.fields,field_description:material_delay_impact.field_mail_activity__mdic_decision
+msgid "Plan decision"
+msgstr "方案取舍"
+
+#. module: material_delay_impact
+#: model:ir.model.fields.selection,name:material_delay_impact.selection__mail_activity__mdic_outcome__unknown
+msgid "To verify"
+msgstr "待确认"
+
+#. module: material_delay_impact
+#: model:ir.model.fields.selection,name:material_delay_impact.selection__mail_activity__mdic_outcome__met
+msgid "This arrangement is feasible"
+msgstr "本项安排可落实"
+
+#. module: material_delay_impact
+#: model:ir.model.fields.selection,name:material_delay_impact.selection__mail_activity__mdic_outcome__not_met
+msgid "This arrangement is not feasible"
+msgstr "本项安排不可落实"
+
+#. module: material_delay_impact
+#: model:ir.model.fields,field_description:material_delay_impact.field_mail_activity__mdic_outcome
+msgid "Arrangement feasibility"
+msgstr "本项安排能否落实"
+
+#. module: material_delay_impact
+#: model:ir.model.fields,help:material_delay_impact.field_mail_activity__mdic_outcome
+msgid "Answer for this specific arrangement. A transfer review confirms permission to move materials. Completing a review does not approve the whole plan."
+msgstr "针对本待办要求的具体安排作答。例如调料核实应回答是否允许调走材料，而非仅回答能否部分投产。完成核实不等于批准整个方案。"

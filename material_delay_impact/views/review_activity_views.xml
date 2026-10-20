@@ -1,0 +1,33 @@
+<odoo>
+  <record id="mdic_my_reviews_action" model="ir.actions.client"><field name="name">My plan reviews</field><field name="tag">mdic_my_reviews</field></record>
+  <menuitem id="mdic_stock_reviews" name="My plan reviews" parent="stock.menu_stock_root" action="mdic_my_reviews_action" sequence="3" groups="stock.group_stock_user"/>
+  <menuitem id="mdic_purchase_reviews" name="My plan reviews" parent="purchase.menu_purchase_root" action="mdic_my_reviews_action" sequence="3" groups="purchase.group_purchase_user"/>
+  <record id="mdic_activity_plan_entry" model="ir.ui.view">
+    <field name="name">material.delay.activity.plan.entry</field>
+    <field name="model">mail.activity</field>
+    <field name="inherit_id" ref="mail.mail_activity_view_form_popup"/>
+    <field name="arch" type="xml">
+      <field name="note" position="before">
+        <field name="mdic_line_id" invisible="1"/>
+        <button name="action_mdic_open_plan" type="object" string="Open shared plan" class="btn-secondary" invisible="not mdic_line_id or not id"/>
+      </field>
+    </field>
+  </record>
+  <record id="mdic_review_activity_form" model="ir.ui.view">
+    <field name="name">material.delay.review.activity.form</field>
+    <field name="model">mail.activity</field>
+    <field name="inherit_id" ref="mail.mail_activity_view_form_popup"/>
+    <field name="mode">primary</field>
+    <field name="arch" type="xml">
+      <field name="note" position="after">
+        <field name="active" invisible="1"/><field name="mdic_role" invisible="1"/><field name="mdic_decision" readonly="1" invisible="not mdic_decision"/>
+        <div class="alert alert-info">Verify whether this specific arrangement is feasible. Transfer reviews must confirm permission to move materials; partial production readiness alone does not grant permission. Completing this review does not approve the whole option.</div>
+        <group><field name="mdic_outcome" readonly="not active" invisible="mdic_role == 'decision'"/>
+          <field name="feedback" string="Verification feedback" placeholder="Conclusion, evidence and next step. Completion does not adopt or execute a transfer." readonly="not active"/></group>
+      </field>
+      <xpath expr="//button[@name='action_done']" position="replace">
+        <button name="action_mdic_complete" string="Save feedback and complete review" type="object" class="btn-primary" invisible="not active"/>
+      </xpath>
+    </field>
+  </record>
+</odoo>

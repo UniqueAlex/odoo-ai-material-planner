@@ -1,0 +1,100 @@
+.mdic-page {
+    background: #f5f6f8;
+    .mdic-content { max-width: 1440px; margin: auto; padding: 28px; }
+    h1 { font-size: 26px; } h2 { font-size: 21px; }
+    .mdic-heading { display: flex; justify-content: space-between; gap: 24px; }
+    label > span { display: block; margin-bottom: 8px; font-weight: 600; }
+    .mdic-inputs { display: grid; grid-template-columns: minmax(200px, 2fr) minmax(200px, 1fr) minmax(150px, 1fr) auto; gap: 16px; align-items: end; }
+    .mdic-facts { display: flex; flex-wrap: wrap; gap: 24px; }
+    .mdic-arrival-comparison { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 18px; padding-top: 4px; }
+    .mdic-impact-overview { border-left: 4px solid #596a8b; }
+    .mdic-overview-count { font-size: 16px; font-weight: 600; }
+    .mdic-overview-needs { padding-left: 20px; line-height: 1.8; }
+    .mdic-scenario-history { border: 1px dashed #8391a1; background: #f4f6f9; }
+    .mdic-scenario-history summary { color: #47586c; }
+    .mdic-history-option { border-top: 1px solid #d8dfe7; padding-top: 12px; margin-top: 12px; }
+    .mdic-history-option h4 { font-size: 15px; }
+    .mdic-history-option li { overflow-wrap: anywhere; }
+    .mdic-results { min-width: 900px; }
+    th, td { vertical-align: middle; padding: 12px; }
+    summary { cursor: pointer; padding: 4px 0; }
+    details ul { padding-top: 8px; }
+    h3 { font-size: 17px; }
+    .mdic-config-grid { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 16px; }
+    .mdic-ai-conclusion { border-left: 4px solid; padding: 16px; border-radius: 4px; }
+    .mdic-risk-low { background: #e5f4e9; border-color: #238636; color: #195525; }
+    .mdic-risk-medium { background: #fff3d6; border-color: #bf8500; color: #6f4a00; }
+    .mdic-risk-high { background: #fde8e8; border-color: #bd3030; color: #852121; }
+    .mdic-ai-text { white-space: pre-line; }
+    .mdic-ai-conclusion p { white-space: pre-line; }
+    .mdic-attention { padding: 12px 16px; background: #f5f6f8; border-radius: 4px; }
+    .mdic-primary-checks li { margin-bottom: 6px; }
+    .mdic-ai-details { border-top: 1px solid #dfe2e6; padding-top: 8px; }
+    @media (max-width: 1000px) { .mdic-inputs { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) {
+        .mdic-content { padding: 16px; }
+        .mdic-heading { flex-direction: column; gap: 8px; }
+        .mdic-inputs { grid-template-columns: 1fr; }
+        .mdic-config-grid { grid-template-columns: 1fr; }
+    }
+}
+
+.mdic-reallocation {
+    .mdic-reallocation-comparison table { min-width: 1000px; }
+    .mdic-reallocation-comparison td { white-space: nowrap; }
+    .mdic-reallocation-comparison th { min-width: 76px; vertical-align: middle; }
+    .mdic-reallocation-comparison th[colspan] { text-align: center; }
+    .mdic-reallocation-comparison thead tr:first-child { background: #f5f6f8; }
+    .mdic-transfer-plan li { overflow-wrap: anywhere; }
+}
+
+.mdic-automatic-options {
+    .mdic-option-card { border-color: #d9e0e8 !important; }
+    .mdic-option-card h3 { color: #263d56; font-weight: 700; line-height: 1.5; }
+    .mdic-option-heading { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 12px; }
+    .mdic-option-heading h3 { flex: 1; min-width: 180px; }
+    .mdic-handoff-output { padding: 12px; margin: 8px 0; background: #f4f7fc; border-radius: 5px; }
+    .mdic-handoff-text { font-size: 13px; line-height: 1.6; }
+    .mdic-option-order-link, .mdic-option-source-link { white-space: normal; text-align: left; overflow-wrap: anywhere; }
+    .mdic-no-adjustment { font-weight: 600; }
+    .mdic-option-card h4 { font-size: 15px; font-weight: 700; margin-top: 18px; margin-bottom: 8px; }
+    .mdic-option-rationale { line-height: 1.7; margin: 12px 0 16px; }
+    .mdic-option-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0 20px; }
+    .mdic-option-metric { background: #f3f5f8; border-left: 4px solid #8c98a6; border-radius: 5px; padding: 12px 14px; min-width: 0; }
+    .mdic-metric-label { display: block; color: #445264; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+    .mdic-metric-values { display: block; font-size: 17px; line-height: 1.5; overflow-wrap: anywhere; }
+    .mdic-metric-values strong, strong.mdic-metric-values { font-weight: 750; }
+    .mdic-change-label { display: inline-block; font-size: 12px; font-weight: 650; margin-top: 4px; }
+    .mdic-before { color: #586575; font-weight: 400; }
+    .mdic-signal-better { background: #edf7f0; border-color: #328454; color: #21643e; }
+    .mdic-signal-worse { background: #fff0e9; border-color: #bf5931; color: #943b20; }
+    .mdic-signal-unknown { background: #fff7e5; border-color: #a77a1c; color: #775610; }
+    .mdic-value-better { color: #21643e; }
+    .mdic-value-worse { color: #a13b25; }
+    .mdic-value-unknown { color: #775610; }
+    .mdic-transfer-quantity { color: #245e94; background: #eef4fb; padding: 1px 5px; border-radius: 3px; white-space: nowrap; }
+    li { margin-bottom: 6px; overflow-wrap: anywhere; }
+    .mdic-option-impacts { list-style: none; padding-left: 0; }
+    .mdic-option-impacts > li { padding: 10px 14px; border-left: 3px solid #8996a5; background: #f5f6f8; border-radius: 3px; line-height: 1.75; margin: 8px 0; }
+    .mdic-impact-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 4px; }
+    .mdic-impact-badge { display: inline-block; border: 1px solid currentColor; border-radius: 4px; padding: 0 7px; font-size: 12px; }
+    .mdic-option-impacts > .mdic-impact-improved { border-color: #328454; background: #f0f8f3; }
+    .mdic-impact-improved .mdic-impact-badge { color: #21643e; }
+    .mdic-option-impacts > .mdic-impact-worsened { border-color: #bf5931; background: #fff3ee; }
+    .mdic-impact-worsened .mdic-impact-badge { color: #a13b25; }
+    .mdic-option-impacts > .mdic-impact-tradeoff { border-color: #a77a1c; background: #fff9ed; }
+    .mdic-impact-tradeoff .mdic-impact-badge { color: #775610; }
+    @media (max-width: 720px) { .mdic-option-metrics { grid-template-columns: 1fr; } }
+}
+
+.mdic-option-goals { display:flex; flex-wrap:wrap; gap:.4rem; margin:.5rem 0; }
+.mdic-option-goals .badge { white-space:normal; text-align:left; font-weight:500; }
+.mdic-review-task { border-top:1px solid #dee2e6; padding-top:.75rem; }
+
+.mdic-adoption { background:#fff9ed; border-left:3px solid #a77a1c; padding:12px 16px; }
+.mdic-coordination { background:#f5f7fa; padding:12px 16px; border-radius:4px; }
+
+.mdic-production-evidence {border-left:4px solid #b35719; background:#fff4e5; padding:12px; margin:12px 0;}
+.mdic-key-blocker {font-weight:500; padding:8px 0;}
+.mdic-role-group {border:1px solid #d9dfe7; padding:10px; border-radius:4px;}
+.mdic-option-card {height:100%; overflow-wrap:anywhere;}

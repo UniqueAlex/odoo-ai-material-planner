@@ -1,0 +1,13 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Material Delay Impact 19.0\n"
+"Language: fr\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: material_delay_impact
+#. odoo-python
+#: code:addons/material_delay_impact/models/purchase_order.py:0
+#: model_terms:ir.ui.view,arch_db:material_delay_impact.purchase_order_delay_impact
+msgid "Delay impact"
+msgstr "Impact du retard"
