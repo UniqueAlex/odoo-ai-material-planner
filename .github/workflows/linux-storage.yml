@@ -1,5 +1,8 @@
 name: Linux credential-store checks
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: ["19.0"]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -13,3 +16,4 @@ jobs:
       # Odoo supplies pytz; this standalone test runner has no Odoo installation.
       - run: python -m pip install -r requirements.txt pytz
       - run: python tests/test_storage.py -v
+      - run: python tests/test_ai_identity_usage.py -v

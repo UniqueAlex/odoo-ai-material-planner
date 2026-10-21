@@ -121,7 +121,8 @@ class Store:
             result = operation(payload)
         except AnalysisError as exc:
             result = {"status": "failed", "code": exc.code,
-                      **({"detail": exc.detail} if exc.detail else {})}
+                      **({"detail": exc.detail} if exc.detail else {}),
+                      **getattr(exc, "accounting", {})}
         except Exception:
             # The provider may have accepted a request before the failure.
             result = {"status": "failed", "code": "interrupted"}

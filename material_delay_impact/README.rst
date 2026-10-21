@@ -1,6 +1,6 @@
 AI Material Planner
 ===================
-Version 19.0.1.0.1. Free material-delay and allocation decision support for Odoo 19.
+Version 19.0.1.0.2. Free material-delay and allocation decision support for Odoo 19.
 Technical module name: material_delay_impact (unchanged for upgrades).
 Install through normal Odoo Apps from a configured custom add-ons directory.
 Dependencies: purchase_stock, mrp, web; see requirements.txt for Python dependencies.
