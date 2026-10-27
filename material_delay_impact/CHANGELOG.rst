@@ -1,6 +1,18 @@
 Changelog
 =========
 
+19.0.1.1.0 (2026-10-27)
+----------------------
+* Add visible first-use setup guidance and actionable, localized API error help.
+* Separate saved, connection-tested and capability-tested configuration states;
+  invalidate old validation after a save, model/key change or removal.
+* Add model presets and an explicitly unverified manual-model option.
+* Add native Gemini and Claude transports alongside existing DeepSeek/OpenAI.
+  New provider support is simulated-test coverage, not live-provider acceptance.
+* Meter connection/capability checks, recommendations and manual explanations,
+  including known usage on failure, Claude cache tokens and Gemini thinking tokens.
+* Preserve local calculations, shared reviews and existing business permissions.
+
 19.0.1.0.2 (2026-10-21)
 ----------------------
 * Keep material identity in AI drafting and review; reject a purchase reference used as a material name.

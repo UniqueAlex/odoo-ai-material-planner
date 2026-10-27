@@ -15,7 +15,7 @@ See the included acceptance record for tested versions and worker configuration.
 Odoo.sh requires separate platform acceptance. Odoo Online is not supported.
 See static/description/index.html and the included delivery documentation.
 """,
-    "version": "19.0.1.0.2",
+    "version": "19.0.1.1.0",
     "category": "Manufacturing",
     "author": "Material Delay Impact project",
     "images": ["static/description/cover.png"],

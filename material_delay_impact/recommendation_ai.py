@@ -166,6 +166,10 @@ def render_facts(ids, facts, data, value, language):
 
 
 def run(value,provider,model,language,key,display_timezone='UTC'):
+    return ai_engine.metered(lambda send: _run(value,provider,model,language,key,display_timezone,send))
+
+
+def _run(value,provider,model,language,key,display_timezone,send):
     if no_adjustment_needed(value):
         return {'status':'not_needed','reason':'no_adjustment_needed','modules':[],
             'limits':{'requests':0,'max_output_tokens':MAX_OUTPUT_TOKENS,'input_bytes':0}}
@@ -191,12 +195,12 @@ def run(value,provider,model,language,key,display_timezone='UTC'):
     if provider=='deepseek':
         payload={'model':model,'messages':messages,'thinking':{'type':'disabled'},'stream':False,
             'response_format':{'type':'json_object'},'max_tokens':MAX_OUTPUT_TOKENS}
-    elif provider=='openai':
+    elif provider in ai_engine.PROVIDERS:
         payload={'model':model,'input':messages,'store':False,'max_output_tokens':MAX_OUTPUT_TOKENS,
             'text':{'format':{'type':'json_schema','name':'material_strategy_options','strict':True,'schema':SCHEMA}}}
     else:
         raise ai_engine.AnalysisError('configuration')
-    response=ai_engine.post(provider,payload,key,time.monotonic()+75)
+    response=send(provider,payload,key,time.monotonic()+75)
     if provider=='deepseek':
         choices=response.get('choices',[])
         if not isinstance(choices,list) or len(choices)!=1 or not isinstance(choices[0],dict) or choices[0].get('finish_reason')!='stop':

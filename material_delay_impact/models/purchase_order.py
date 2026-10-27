@@ -153,12 +153,17 @@ class PurchaseOrder(models.Model):
     @api.readonly
     def mdic_ai_status(self):
         company = self._mdic_ai_access()
+        presets = {p: item['model'] for p, item in ai_engine.PROVIDERS.items()}
         try:
             saved = self._mdic_store(company).read()
         except ai_engine.AnalysisError as exc:
-            return {"configured": False, "code": exc.code, "can_manage": self.env.user.has_group("base.group_system")}
+            return {"configured": False, "code": exc.code, "presets": presets,
+                    "provider": "deepseek", "model": presets['deepseek'], "validation": {},
+                    "can_manage": self.env.user.has_group("base.group_system")}
         return {"configured": bool(saved), "provider": saved["provider"] if saved else "deepseek",
                 "model": saved["model"] if saved else "deepseek-flash",
+                "validation": saved.get("validation", {}) if saved else {},
+                "presets": presets,
                 "can_manage": self.env.user.has_group("base.group_system")}
 
     def mdic_ai_save(self, provider, model, key):
@@ -192,6 +197,13 @@ class PurchaseOrder(models.Model):
 
     @api.readonly
     def mdic_ai_test(self, request_id=None):
+        return self._mdic_test_configuration(request_id, capability=False)
+
+    @api.readonly
+    def mdic_ai_capability(self, request_id=None):
+        return self._mdic_test_configuration(request_id, capability=True)
+
+    def _mdic_test_configuration(self, request_id, capability):
         company = self._mdic_ai_access()
         if not self.env.user.has_group("base.group_system"):
             return {"status": "failed", "code": "admin"}
@@ -199,9 +211,19 @@ class PurchaseOrder(models.Model):
             saved = self._mdic_store(company).read()
             if not saved:
                 raise ai_engine.AnalysisError("configuration")
-            identity=self._mdic_request_identity("connection",company,saved,"UTC",request_id)
+            identity=self._mdic_request_identity("capability" if capability else "connection",
+                [company, secure_config.revision(saved)],saved,"UTC",request_id)
+            def perform(_):
+                test = ai_engine.test_capability if capability else ai_engine.test_connection
+                result = test(saved["provider"], saved["model"], saved["key"])
+                try:
+                    marked = self._mdic_store(company).mark_validation(secure_config.revision(saved), result['status'])
+                    result['validation_saved'] = marked
+                except ai_engine.AnalysisError:
+                    result['validation_saved'] = False
+                return result
             return self._mdic_jobs().run(self._mdic_scope(0),
-                lambda _: ai_engine.test_connection(saved["provider"],saved["model"],saved["key"]),identity=identity)
+                perform,identity=identity)
         except ai_engine.AnalysisError as exc:
             return {"status": "failed", "code": exc.code}
 

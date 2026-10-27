@@ -9,26 +9,44 @@
                     <div t-if="!this.state.shared"><button class="btn btn-outline-primary mdic-settings-toggle" t-on-click="this.toggleSettings" t-att-disabled="this.state.busy or this.state.aiBusy"><t t-esc="this.t(this.state.showSettings ? 'close' : 'settings')"/></button></div>
                 </div>
                 <div class="alert alert-info"><t t-esc="this.t('readonly')"/></div><p t-if="this.state.shared" class="alert alert-info mdic-shared-notice" t-esc="this.sharedNotice()"/><p t-if="this.state.resumed" class="alert alert-info mdic-resumed" role="status" t-esc="this.t('resumed')"/>
+                <div t-if="!this.state.shared and this.state.config and !this.state.config.configured" class="card card-body mb-3 border-primary mdic-first-use">
+                    <h2 t-esc="this.t('setupTitle')"/>
+                    <p t-esc="this.t('setupIntro')"/>
+                    <p t-if="this.state.config.code" class="text-danger" t-esc="this.aiMessage(this.state.config.code)"/>
+                    <button t-if="this.state.config.can_manage and !this.state.showSettings" class="btn btn-primary align-self-start" t-on-click="this.toggleSettings" t-esc="this.t('setupStart')"/>
+                    <p t-if="!this.state.config.can_manage" class="mb-0" t-esc="this.t('setupAdmin')"/>
+                </div>
                 <div t-if="this.state.showSettings" class="card card-body mb-3 mdic-settings">
                     <h2><t t-esc="this.t('settings')"/></h2>
                     <p class="small"><t t-esc="this.t('adminHelp')"/></p>
                     <p class="small text-muted"><t t-esc="this.t('secure')"/></p>
                     <div class="mdic-config-grid">
                         <label><span><t t-esc="this.t('provider')"/></span><select class="form-select" t-on-change="this.onProvider" t-att-value="this.state.provider" t-att-disabled="!this.state.config?.can_manage or this.state.settingsBusy">
-                            <option value="deepseek">DeepSeek</option><option value="openai">OpenAI</option>
+                            <option value="deepseek">DeepSeek</option><option value="openai">OpenAI</option><option value="gemini">Gemini</option><option value="claude">Claude</option>
                         </select></label>
-                        <label><span><t t-esc="this.t('model')"/></span><input class="form-control" type="text" t-att-value="this.state.model" t-on-input="this.onModel" t-att-disabled="!this.state.config?.can_manage or this.state.settingsBusy"/></label>
+                        <label><span><t t-esc="this.t('model')"/> · <t t-esc="this.t(this.state.customModel ? 'custom' : 'preset')"/></span>
+                            <select class="form-select" t-on-change="this.chooseModel" t-att-value="this.state.customModel ? 'custom' : 'preset'" t-att-disabled="!this.state.config?.can_manage or this.state.settingsBusy">
+                                <option value="preset" t-esc="this.state.config?.presets?.[this.state.provider]"/>
+                                <option value="custom" t-esc="this.t('custom')"/>
+                            </select>
+                            <input t-if="this.state.customModel" class="form-control mt-2" type="text" t-att-value="this.state.model" t-on-input="this.onModel" t-att-disabled="!this.state.config?.can_manage or this.state.settingsBusy"/>
+                        </label>
                         <label><span><t t-esc="this.t('key')"/></span><input class="form-control mdic-key" type="password" autocomplete="new-password" t-att-value="this.state.key" t-on-input="this.onKey" t-att-disabled="!this.state.config?.can_manage or this.state.settingsBusy"/></label>
                     </div>
                     <p class="small mt-2"><t t-esc="this.t('keyHelp')"/></p>
-                    <p><t t-esc="this.t(this.state.config?.configured ? 'configured' : 'notConfigured')"/></p>
+                    <p t-if="this.state.customModel" class="small text-warning" t-esc="this.t('customHelp')"/>
+                    <p class="fw-bold mdic-config-status" role="status" t-esc="this.configStatus()"/>
+                    <p t-if="this.state.config?.validation?.capable or this.state.config?.validation?.connected" class="small text-muted" t-esc="this.state.config.validation.capable || this.state.config.validation.connected"/>
                     <div class="d-flex flex-wrap gap-2" t-if="this.state.config?.can_manage">
                         <button class="btn btn-primary" t-on-click="this.saveConfig" t-att-disabled="this.state.settingsBusy"><t t-esc="this.t('save')"/></button>
-                        <button class="btn btn-outline-primary" t-on-click="this.testConfig" t-att-disabled="this.state.settingsBusy or !this.state.config?.configured"><t t-esc="this.t('test')"/></button>
+                        <button class="btn btn-outline-primary" t-on-click="this.testConfig" t-att-disabled="this.state.settingsBusy or !this.state.config?.configured or this.configDirty"><t t-esc="this.t('test')"/></button>
+                        <button class="btn btn-outline-primary" t-on-click="this.testCapability" t-att-disabled="this.state.settingsBusy or !this.state.config?.configured or this.configDirty"><t t-esc="this.t('capability')"/></button>
                         <button class="btn btn-outline-danger" t-on-click="this.removeConfig" t-att-disabled="this.state.settingsBusy or !this.state.config?.configured"><t t-esc="this.t('remove')"/></button>
                     </div>
                     <p t-if="this.state.configMessage" class="mt-2 mb-0" role="status" t-esc="this.state.configMessage"/>
-                    <details class="mt-3"><summary><t t-esc="this.t('guides')"/></summary>
+                    <p t-if="this.state.configUsage" class="small mt-2"><t t-esc="this.t('usageLabel')"/>: <t t-esc="this.configUsageText()"/></p>
+                    <p class="small mt-2" t-esc="this.t('capabilityHelp')"/>
+                    <details class="mt-3" t-att-open="!this.state.config?.configured"><summary><t t-esc="this.t('guides')"/></summary>
                         <p class="mt-2"><t t-esc="this.t('guideSteps')"/></p>
                         <ul><li><t t-esc="this.t('deepseekGuide')"/> <a href="https://platform.deepseek.com/" target="_blank" rel="noopener noreferrer">DeepSeek</a></li>
                             <li><t t-esc="this.t('openaiGuide')"/> <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI</a></li>

@@ -6,10 +6,27 @@ from pathlib import Path
 import re
 import tempfile
 import threading
+import secrets
+from datetime import datetime, timezone
 
 from .ai_engine import PROVIDERS, AnalysisError
 
 LOCK = threading.RLock()
+
+
+def revision(value):
+    return value.get('revision') or hashlib.sha256(json.dumps(
+        [value['provider'], value['model'], value['key']]).encode()).hexdigest()
+
+
+def validation_update(value, level):
+    if level not in ('connected', 'capable'):
+        raise AnalysisError('configuration')
+    result = dict(value.get('validation', {}))
+    result[level] = datetime.now(timezone.utc).isoformat()
+    if level == 'capable':
+        result.setdefault('connected', result[level])
+    return result
 
 
 def validate_settings(provider, model, key=None):
@@ -62,7 +79,7 @@ class WindowsStore:
             except Exception:
                 raise AnalysisError("secure_storage") from None
 
-    def save(self, provider, model, key):
+    def save(self, provider, model, key, *, validation=None, saved_revision=None):
         import win32crypt
         validate_settings(provider, model, key)
         with LOCK:
@@ -70,7 +87,8 @@ class WindowsStore:
                 raise AnalysisError("secure_storage")
             self.directory.mkdir(mode=0o700, parents=True, exist_ok=True)
             private_acl(self.directory)
-            encrypted = win32crypt.CryptProtectData(json.dumps({"provider": provider, "model": model, "key": key}).encode(),
+            encrypted = win32crypt.CryptProtectData(json.dumps({"provider": provider, "model": model, "key": key,
+                "revision": saved_revision or secrets.token_hex(16), "validation": validation or {}}).encode(),
                 "MDIC AI configuration", self.entropy, None, None, 1)  # CURRENT USER, UI forbidden; never LOCAL_MACHINE.
             fd, temporary = tempfile.mkstemp(dir=self.directory, suffix=".tmp")
             try:
@@ -86,6 +104,15 @@ class WindowsStore:
                     os.close(fd)
                 if os.path.exists(temporary):
                     os.unlink(temporary)
+
+    def mark_validation(self, expected_revision, level):
+        with LOCK:
+            current = self.read()
+            if not current or revision(current) != expected_revision:
+                return False
+            self.save(current['provider'], current['model'], current['key'],
+                      validation=validation_update(current, level), saved_revision=revision(current))
+            return True
 
     def remove(self):
         with LOCK:

@@ -15,5 +15,4 @@ jobs:
           python-version: '3.12'
       # Odoo supplies pytz; this standalone test runner has no Odoo installation.
       - run: python -m pip install -r requirements.txt pytz
-      - run: python tests/test_storage.py -v
-      - run: python tests/test_ai_identity_usage.py -v
+      - run: python -m unittest discover -s tests -v

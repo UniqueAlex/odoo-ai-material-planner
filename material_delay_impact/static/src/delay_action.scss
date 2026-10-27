@@ -20,7 +20,7 @@
     summary { cursor: pointer; padding: 4px 0; }
     details ul { padding-top: 8px; }
     h3 { font-size: 17px; }
-    .mdic-config-grid { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 16px; }
+    .mdic-config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
     .mdic-ai-conclusion { border-left: 4px solid; padding: 16px; border-radius: 4px; }
     .mdic-risk-low { background: #e5f4e9; border-color: #238636; color: #195525; }
     .mdic-risk-medium { background: #fff3d6; border-color: #bf8500; color: #6f4a00; }

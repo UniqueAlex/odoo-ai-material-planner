@@ -7,10 +7,13 @@ import time
 from datetime import datetime, timezone
 import requests
 import pytz
+from . import provider_transport
 
 PROVIDERS = {
     "deepseek": {"url": "https://api.deepseek.com/chat/completions", "model": "deepseek-flash"},
     "openai": {"url": "https://api.openai.com/v1/responses", "model": "gpt-4.1-mini"},
+    "gemini": {"url": "https://generativelanguage.googleapis.com", "model": "gemini-3.1-flash-lite"},
+    "claude": {"url": "https://api.anthropic.com/v1/messages", "model": "claude-haiku-5-5"},
 }
 TOOLS = (
     "read_purchase_line", "read_receipts", "read_stock_reservations", "read_other_incoming",
@@ -62,12 +65,20 @@ def same_instant(actual, expected):
 
 
 def post(provider, payload, key, deadline):
+    if provider not in PROVIDERS:
+        raise AnalysisError("configuration")
+    url = PROVIDERS[provider]["url"]
+    headers = {"Authorization": "Bearer " + key, "Content-Type": "application/json"}
+    if provider in ("gemini", "claude"):
+        try:
+            url, headers, payload = provider_transport.request(provider, payload, key)
+        except (ValueError, TypeError, KeyError):
+            raise AnalysisError("configuration") from None
     remaining = deadline - time.monotonic()
     if remaining <= 0:
         raise AnalysisError("timeout")
     try:
-        response = requests.post(PROVIDERS[provider]["url"], json=payload,
-                                 headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"},
+        response = requests.post(url, json=payload, headers=headers, allow_redirects=False,
                                  timeout=(min(8, remaining), min(90, remaining)))
     except requests.RequestException:
         raise AnalysisError("network") from None
@@ -84,6 +95,18 @@ def post(provider, payload, key, deadline):
                     code = "balance"
             except (ValueError, AttributeError, TypeError):
                 pass
+        if provider in ("gemini", "claude"):
+            try:
+                error = response.json().get("error", {})
+                message = str(error.get("message", "")).lower()
+                if "api key not valid" in message or error.get("type") == "authentication_error":
+                    code = "key"
+                elif "credit balance" in message or "billing" in message:
+                    code = "balance"
+                elif "location is not supported" in message or "unsupported country" in message:
+                    code = "region"
+            except (ValueError, TypeError, AttributeError):
+                pass
         raise AnalysisError(code)
     try:
         result = response.json()
@@ -91,7 +114,7 @@ def post(provider, payload, key, deadline):
         raise AnalysisError("format") from None
     if not isinstance(result, dict):
         raise AnalysisError("format")
-    return result
+    return provider_transport.response(provider, result) if provider in ("gemini", "claude") else result
 
 
 def tools_schema(provider):
@@ -100,7 +123,7 @@ def tools_schema(provider):
               ". Bound to this task's immutable snapshot. No parameters, database access or writes.",
               "parameters": {"type": "object", "properties": {}, "required": [], "additionalProperties": False},
               "strict": True} for name in TOOLS]
-    if provider == "openai":
+    if provider != "deepseek":
         return tools
     return [{"type": "function", "function": {k: v for k, v in tool.items() if k not in ("type", "strict")}}
             for tool in tools]
@@ -739,6 +762,10 @@ def final_instruction(task, language="en_US"):
 
 
 def run(task, provider, model, language, key):
+    return metered(lambda send: _run(task, provider, model, language, key, send))
+
+
+def metered(operation):
     # Per-invocation accounting: includes tool rounds and bounded draft repairs.
     # Never infer zero usage for missing metadata or a request without a response.
     rounds = []
@@ -774,7 +801,7 @@ def run(task, provider, model, language, key):
                 "known_total_tokens": sum(x["total_tokens"] or 0 for x in rounds)}}
 
     try:
-        result = _run(task, provider, model, language, key, send)
+        result = operation(send)
     except Exception as exc:
         error = exc if isinstance(exc, AnalysisError) else AnalysisError("interrupted")
         error.accounting = accounting()
@@ -877,12 +904,16 @@ def _run(task, provider, model, language, key, send):
 
 
 def test_connection(provider, model, key):
+    return metered(lambda send: _test_connection(provider, model, key, send))
+
+
+def _test_connection(provider, model, key, send):
     # A small real generation checks both credentials and model access.
     payload = ({"model": model, "messages": [{"role": "user", "content": "Reply OK only."}],
                 "thinking": {"type": "disabled"}, "max_tokens": 16, "stream": False}
                if provider == "deepseek" else
-               {"model": model, "input": "Reply OK only.", "max_output_tokens": 32, "store": False})
-    response = post(provider, payload, key, time.monotonic() + 35)
+               {"model": model, "input": "Reply OK only.", "max_output_tokens": 256 if provider in ('gemini', 'claude') else 32, "store": False})
+    response = send(provider, payload, key, time.monotonic() + 35)
     if provider == "deepseek":
         choices = response.get("choices")
         if not isinstance(choices, list) or len(choices) != 1 or not isinstance(choices[0], dict):
@@ -908,4 +939,76 @@ def test_connection(provider, model, key):
                 texts.extend(part.get("text") for part in content if part.get("type") == "output_text")
         if not texts or any(not isinstance(text, str) for text in texts) or not "".join(texts).strip():
             raise AnalysisError("format")
-    return {"status": "connected", "provider": provider, "model": model}
+    return {"status": "connected", "provider": provider, "model": model, "usage": response.get("usage", {})}
+
+
+def test_capability(provider, model, key):
+    """Two bounded synthetic requests: tool round-trip plus structured output.
+
+    No business facts are sent; this validates protocol capability, not the
+    correctness of future AI advice. Never retries a paid request automatically.
+    """
+    return metered(lambda send: _test_capability(provider, model, key, send))
+
+
+def _test_capability(provider, model, key, send):
+    import secrets
+    nonce = secrets.token_hex(6)
+    history = [{"role": "user", "content": "Call read_test_value once, then return its value unchanged as JSON {value:string}."}]
+    tool = {"type": "function", "name": "read_test_value", "description": "Read synthetic configuration test data.",
+            "parameters": {"type": "object", "properties": {}, "required": [], "additionalProperties": False}, "strict": True}
+    schema = {"type": "object", "properties": {"value": {"type": "string"}}, "required": ["value"], "additionalProperties": False}
+    def empty_arguments(value):
+        try:
+            return json.loads(value) == {}
+        except (ValueError, TypeError):
+            return False
+    deadline = time.monotonic() + 65
+    for stage in range(2):
+        if provider == "deepseek":
+            payload = {"model": model, "messages": history, "thinking": {"type": "disabled"}, "stream": False, "max_tokens": 200}
+            if stage == 0:
+                payload.update(tools=[{"type": "function", "function": {k: v for k, v in tool.items() if k not in ("type", "strict")}}],
+                               tool_choice={"type": "function", "function": {"name": "read_test_value"}})
+            else:
+                payload['response_format'] = {"type": "json_object"}
+            response = send(provider, payload, key, deadline)
+            choices = response.get('choices', [])
+            if len(choices) != 1:
+                raise AnalysisError('capability')
+            message = choices[0].get('message', {})
+            if stage == 0:
+                calls = message.get('tool_calls', [])
+                if len(calls) != 1 or calls[0].get('function', {}).get('name') != 'read_test_value' or not empty_arguments(calls[0]['function'].get('arguments')):
+                    raise AnalysisError('capability')
+                history.extend([{'role': 'assistant', 'content': message.get('content'), 'tool_calls': calls},
+                                {'role': 'tool', 'tool_call_id': calls[0]['id'], 'content': json.dumps({'value': nonce})}])
+            else:
+                if choices[0].get('finish_reason') != 'stop':
+                    raise AnalysisError('capability')
+                text = message.get('content', '')
+        else:
+            payload = {'model': model, 'input': history, 'max_output_tokens': 512, 'store': False}
+            if stage == 0:
+                payload.update(tools=[tool], tool_choice='required')
+            else:
+                payload['text'] = {'format': {'type': 'json_schema', 'name': 'configuration_probe', 'strict': True, 'schema': schema}}
+            response = send(provider, payload, key, deadline)
+            if response.get('status') != 'completed':
+                raise AnalysisError('capability')
+            output = response.get('output', [])
+            if stage == 0:
+                calls = [x for x in output if x.get('type') == 'function_call']
+                if len(calls) != 1 or calls[0].get('name') != 'read_test_value' or not empty_arguments(calls[0].get('arguments')):
+                    raise AnalysisError('capability')
+                history.extend(output)
+                history.append({'type': 'function_call_output', 'call_id': calls[0]['call_id'], 'output': json.dumps({'value': nonce})})
+            else:
+                text = ''.join(p.get('text', '') for x in output if x.get('type') == 'message' for p in x.get('content', []) if p.get('type') == 'output_text')
+    try:
+        valid = json.loads(text) == {'value': nonce}
+    except (ValueError, TypeError):
+        valid = False
+    if not valid:
+        raise AnalysisError('capability')
+    return {'status': 'capable', 'provider': provider, 'model': model}

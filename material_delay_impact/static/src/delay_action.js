@@ -147,6 +147,12 @@ const COMPACT_COPY = {
 Object.assign(AI_COPY.zh,{interrupted:"本次请求中断，无法确认服务商是否已计费；系统不会自动重发。重新分析后可主动发起新请求。",expired:"本次证据已过期，请点击「分析影响」重新读取。"});
 Object.assign(AI_COPY.en,{interrupted:"This request was interrupted; provider billing is uncertain. It will not be resent automatically. Recalculate before explicitly starting a new request.",expired:"This evidence has expired. Analyze impact again to read current data."});
 Object.assign(AI_COPY.fr,{interrupted:"Requête interrompue ; facturation inconnue. Aucun renvoi automatique. Recalculez avant une nouvelle demande explicite.",expired:"Données expirées. Relancez l’analyse."});
+const CONFIG_COPY = {
+    zh: {setupTitle: "首次使用：连接你的 AI", setupIntro: "缺料计算和方案比较可直接使用。需要 AI 解读时，再完成下方配置。", setupAdmin: "请联系 Odoo 系统管理员配置本公司的 AI 服务；你仍可使用本地计算。", setupStart: "开始配置 AI", savedUntested: "已保存，尚未验证", connectionPassed: "连接通过，尚未验证分析能力", capabilityPassed: "分析能力验证通过", capability: "验证分析能力", capabilityHelp: "使用模拟数据检查工具读取和结构化输出，最多两次小请求，会消耗 API 额度。通过不代表之后每份 AI 意见都正确。", preset: "建议配置", custom: "手动填写其他模型（未验证）", customHelp: "其他模型不保证兼容。保存后请验证分析能力。", pendingSave: "配置有未保存的修改，请先保存再测试。", validationNotSaved: "测试通过，但验证状态未保存（配置可能已变更）。请检查当前配置。", saved: "已保存，尚未验证。下一步：测试连接，再验证分析能力。", connected: "连接成功。下一步：验证分析能力。", capable: "工具读取与结构化输出验证通过。现在可以运行 AI 分析。", capabilityError: "模型未通过工具读取或结构化输出检查。请切回建议模型，再核对该模型的 API 权限。", usageLabel: "本次 API 用量", unknownUsage: "未取得完整用量，实际计费以服务商账单为准", region: "服务商不支持当前 Odoo 服务器所在地区。请按服务商支持地区要求部署。", network: "Odoo 服务器无法连接模型服务。请管理员检查服务器的出站 HTTPS、DNS 或网络代理；浏览器能打开官网不代表服务器能访问 API。", keyError: "密钥认证失败。请从所选服务商的 API 控制台创建有效密钥，重新粘贴并保存；不要使用网页登录密码。", modelError: "模型不存在或当前账户无权使用。先选择建议模型，再检查 API 控制台中的模型权限。", balance: "API 余额或额度不足。请到所选服务商的账单页面充值或调整 API 限额；聊天会员不包含 API 额度。", permission: "API 访问被拒绝。请核对密钥所属项目、模型访问权限及服务商支持地区。", parameters: "该模型不接受当前请求参数。请使用建议模型；手动模型可能不兼容。", configuration: "请先选择服务商、填写模型和该平台 API Key，然后保存。换服务商时需填写对应平台的新密钥。", guideSteps: "1. 打开下方官方平台并开通 API 额度。2. 选择服务商及建议模型。3. 粘贴 API Key 并保存。4. 勾选数据授权，测试连接并验证分析能力。聊天会员不等于 API 额度。", deepseekGuide: "DeepSeek：在 API 平台创建密钥并检查余额。", openaiGuide: "OpenAI：需要可调用 Responses API 的项目密钥及 API 额度。", claudeGuide: "Claude：使用 Anthropic Console 的 API Key；目前对接官方 Messages API，不含 Bedrock。", geminiGuide: "Gemini：使用 Google AI Studio 的 API Key；目前对接 Gemini API，不含 Vertex AI。"},
+    en: {setupTitle: "First use: connect your AI", setupIntro: "Shortage calculations and option comparisons work immediately. Configure AI when you want an explanation.", setupAdmin: "Ask your Odoo system administrator to configure AI for this company. Local calculations remain available.", setupStart: "Set up AI", savedUntested: "Saved, not yet tested", connectionPassed: "Connection passed; analysis capability not yet tested", capabilityPassed: "Analysis capability verified", capability: "Verify analysis capability", capabilityHelp: "Uses synthetic data to check tool reading and structured output in at most two small API requests. API charges apply. Passing does not guarantee every future AI opinion is correct.", preset: "Suggested configuration", custom: "Enter another model manually (unverified)", customHelp: "Other models may be incompatible. Save and verify analysis capability before use.", pendingSave: "Unsaved changes: save before testing.", validationNotSaved: "Test passed, but its status was not saved (configuration may have changed). Check the current settings.", saved: "Saved, not yet tested. Next: test the connection, then verify analysis capability.", connected: "Connection successful. Next: verify analysis capability.", capable: "Tool reading and structured output verified. You can now run AI analysis.", capabilityError: "Tool reading or structured output verification failed. Choose the suggested model and check its API permissions.", usageLabel: "API usage for this operation", unknownUsage: "Complete usage unavailable; consult the provider bill", region: "The provider does not support the Odoo server's region. Use a deployment region supported by that provider.", network: "The Odoo server cannot reach the model API. Ask an administrator to check outbound HTTPS, DNS or proxy settings. Browser access to the website does not prove server API access.", keyError: "API key authentication failed. Create a valid key in the selected provider's API console, paste it and save. Do not use a website password.", modelError: "Model unavailable or not enabled for this account. Select the suggested model and check model access in the API console.", balance: "API credit or quota exhausted. Top up or adjust API limits in the provider billing page. A chat subscription does not include API credits.", permission: "API access denied. Check the key's project, model permissions and supported region.", parameters: "This model rejected the request parameters. Select the suggested model; manual model entries may be incompatible.", configuration: "Select a provider and model, enter its API key, then save. Switching providers requires that provider's key.", guideSteps: "1. Open the official platform below and enable API credit. 2. Select the provider and suggested model. 3. Paste its API key and save. 4. Enable data consent, test the connection and verify analysis capability. Chat subscriptions do not include API credits.", deepseekGuide: "DeepSeek: create an API key and check your API balance.", openaiGuide: "OpenAI: use a project key with Responses API access and API credit.", claudeGuide: "Claude: use an Anthropic Console API key. Direct Messages API only; Bedrock is not included.", geminiGuide: "Gemini: use a Google AI Studio API key. Direct Gemini API only; Vertex AI is not included."},
+    fr: {setupTitle: "Première utilisation : connecter votre IA", setupIntro: "Les calculs de manque et la comparaison fonctionnent immédiatement. Configurez l’IA pour obtenir une interprétation.", setupAdmin: "Demandez à l’administrateur Odoo de configurer l’IA de cette société. Les calculs restent disponibles.", setupStart: "Configurer l’IA", savedUntested: "Enregistré, pas encore testé", connectionPassed: "Connexion réussie ; capacité d’analyse non vérifiée", capabilityPassed: "Capacité d’analyse vérifiée", capability: "Vérifier la capacité d’analyse", capabilityHelp: "Vérifie les outils et la sortie structurée avec des données simulées : deux petites requêtes API au maximum, potentiellement facturées. Cela ne garantit pas la justesse de chaque avis futur.", preset: "Configuration suggérée", custom: "Saisir un autre modèle (non vérifié)", customHelp: "Compatibilité non garantie. Enregistrez puis vérifiez la capacité d’analyse.", pendingSave: "Modifications non enregistrées : enregistrez avant le test.", validationNotSaved: "Test réussi, mais état non enregistré (configuration éventuellement modifiée). Vérifiez les paramètres.", saved: "Enregistré, non vérifié. Testez la connexion puis la capacité d’analyse.", connected: "Connexion réussie. Vérifiez maintenant la capacité d’analyse.", capable: "Outils et sortie structurée vérifiés. Vous pouvez lancer l’analyse IA.", capabilityError: "Échec de vérification des outils ou du format. Choisissez le modèle suggéré et vérifiez ses permissions API.", usageLabel: "Consommation API de cette opération", unknownUsage: "Consommation complète inconnue ; consultez la facture du fournisseur", region: "Région du serveur Odoo non prise en charge par ce fournisseur.", network: "Le serveur Odoo ne peut pas joindre l’API. Faites vérifier HTTPS sortant, DNS et proxy. L’accès depuis le navigateur ne prouve pas l’accès du serveur.", keyError: "Clé API refusée. Créez une clé valide chez le fournisseur choisi, collez-la puis enregistrez. N’utilisez pas le mot de passe du site.", modelError: "Modèle introuvable ou non autorisé. Choisissez le modèle suggéré et vérifiez les droits API.", balance: "Crédit ou quota API épuisé. Consultez la facturation du fournisseur. L’abonnement au chat n’inclut pas de crédit API.", permission: "Accès API refusé. Vérifiez projet, permissions du modèle et région.", parameters: "Paramètres refusés par ce modèle. Choisissez le modèle suggéré.", configuration: "Choisissez un fournisseur et un modèle, saisissez sa clé API puis enregistrez. Changer de fournisseur nécessite sa propre clé.", guideSteps: "1. Activez le crédit API sur la plateforme officielle. 2. Choisissez le fournisseur et le modèle suggéré. 3. Collez la clé et enregistrez. 4. Autorisez le partage, testez la connexion puis la capacité d’analyse. L’abonnement au chat n’inclut pas de crédit API.", deepseekGuide: "DeepSeek : créez une clé API et vérifiez le solde.", openaiGuide: "OpenAI : clé de projet avec accès Responses API et crédit API.", claudeGuide: "Claude : clé Anthropic Console ; API Messages directe uniquement, hors Bedrock.", geminiGuide: "Gemini : clé Google AI Studio ; API Gemini directe uniquement, hors Vertex AI."},
+};
+for (const lang of Object.keys(CONFIG_COPY)) Object.assign(AI_COPY[lang], CONFIG_COPY[lang]);
 const CONTEXT_COPY = {
     zh: {focus: "需要关注的影响", timingFacts: "来料与需求的时间间隔", too_long: "AI 报告超过服务运行限制，未接受该报告。", unreservedStock: "未预留现货", balanceEvidence: "查看情景余量来源", available: "供给量", allocated: "已分配", remainder: "未分配", balanceScope: "以下为已知情景事件后的余量，不是当前在库量。"},
     en: {focus: "Impacts needing attention", timingFacts: "Arrival and need timing", too_long: "AI report exceeded the service resource limit and was rejected.", unreservedStock: "Unreserved current stock", balanceEvidence: "View scenario remainder by source", available: "Supply", allocated: "Allocated", remainder: "Unallocated", balanceScope: "Balances after known scenario events, not current on-hand stock."},
@@ -271,7 +277,7 @@ export class MaterialDelayAction extends Component {
             shared: null, options: null, lineId: "", arrival: "", busy: false, error: "", report: null, restoredReport: false,
             previousToken: saved?.previousToken || null, inputsChanged: false, resumed, resumeReview: false,
             ai: null, aiBusy: false, aiError: "", aiConsent: false, showSettings: false, settingsBusy: false,
-            config: null, provider: "deepseek", model: "deepseek-flash", key: "", configMessage: "",
+            config: null, provider: "deepseek", model: "deepseek-flash", key: "", configMessage: "", customModel: false, configUsage: null,
         });
         // Browser Back rebuilds from globalState; breadcrumbs can reuse local
         // state. Register both so each navigation path retains the scenario.
@@ -557,13 +563,28 @@ export class MaterialDelayAction extends Component {
         this.state.config = value;
         this.state.provider = value.provider || "deepseek";
         this.state.model = value.model || "deepseek-flash";
+        this.state.customModel = this.state.model !== value.presets?.[this.state.provider];
+    }
+    get configDirty() { return Boolean(this.state.key) || this.state.provider !== this.state.config?.provider || this.state.model !== this.state.config?.model; }
+    configStatus() {
+        if (this.configDirty && this.state.config?.configured) return this.t('pendingSave');
+        const config = this.state.config;
+        return this.t(!config?.configured ? 'notConfigured' : config.validation?.capable ? 'capabilityPassed' : config.validation?.connected ? 'connectionPassed' : 'savedUntested');
+    }
+    configUsageText() {
+        const value = this.state.configUsage;
+        return Number.isInteger(value?.total_tokens) ? `${value.total_tokens} tokens` : this.t('unknownUsage');
+    }
+    chooseModel(event) {
+        this.state.customModel = event.target.value === 'custom';
+        if (!this.state.customModel) this.state.model = this.state.config?.presets?.[this.state.provider] || '';
     }
     toggleSettings() { this.state.showSettings = !this.state.showSettings; this.state.key = ""; this.state.configMessage = ""; }
-    onProvider(event) { this.state.provider = event.target.value; this.state.model = this.state.provider === "deepseek" ? "deepseek-flash" : "gpt-4.1-mini"; this.state.key = ""; }
+    onProvider(event) { this.state.provider = event.target.value; this.state.model = this.state.config?.presets?.[this.state.provider] || ''; this.state.key = ""; this.state.customModel = false; this.state.configMessage = ''; this.state.configUsage = null; }
     onModel(event) { this.state.model = event.target.value; }
     onKey(event) { this.state.key = event.target.value; }
     aiMessage(code, detail) {
-        const message = this.t(code === "key" ? "keyError" : code === "model" ? "modelError" : code);
+        const message = this.t(code === "key" ? "keyError" : code === "model" ? "modelError" : code === 'capability' ? 'capabilityError' : code);
         const copy = VALIDATION_COPY[this.state.lang];
         const specific = code === "validation" && copy[detail?.reason];
         if (!specific) return message;
@@ -572,28 +593,35 @@ export class MaterialDelayAction extends Component {
     }
     async settingsOperation(operation) {
         if (this.state.settingsBusy || this.state.busy || this.state.aiBusy) return;
-        this.state.settingsBusy = true; this.state.configMessage = "";
+        this.state.settingsBusy = true; this.state.configMessage = ""; this.state.configUsage = null;
         try {
             const args = operation === "save" ? [[this.orderId], this.state.provider, this.state.model, this.state.key]
-                : operation === "test" ? [[this.orderId], Date.now().toString(36) + "_" + Math.random().toString(36).slice(2) + "_" + Math.random().toString(36).slice(2)]
+                : ['test', 'capability'].includes(operation) ? [[this.orderId], Date.now().toString(36) + "_" + Math.random().toString(36).slice(2) + "_" + Math.random().toString(36).slice(2)]
                 : [[this.orderId]];
             const value = await this.orm.call("purchase.order", `mdic_ai_${operation}`, args);
-            this.state.configMessage = value.status === "failed" ? this.aiMessage(value.code) : this.t({save: "saved", remove: "removed", test: "connected"}[operation]);
-            if (value.status !== "failed" && operation !== "test") {
+            this.state.configMessage = value.status === "failed" ? this.aiMessage(value.code) : value.validation_saved === false ? this.t('validationNotSaved') : this.t({save: "saved", remove: "removed", test: "connected", capability: "capable"}[operation]);
+            if (value.usage_details) this.state.configUsage = value.usage || {};
+            if (value.status !== "failed" && ['save', 'remove'].includes(operation)) {
                 this.state.ai = null; this.state.aiError = "";
                 const saved = navigationReports.get(this.reportToken);
                 if (saved) { saved.ai = null; saved.aiTask = null; }
             }
             await this.loadConfig();
-        } catch (error) { this.state.configMessage = this.t("secure_storage"); }
+        } catch (error) { this.state.configMessage = this.t("network"); }
         finally { this.state.key = ""; this.state.settingsBusy = false; }
     }
     saveConfig() { return this.settingsOperation("save"); }
     removeConfig() { return this.settingsOperation("remove"); }
     onAIConsent(event) { this.state.aiConsent = event.target.checked; }
     testConfig() {
+        if (this.configDirty) { this.state.configMessage = this.t('pendingSave'); return; }
         if (!this.state.aiConsent) { this.state.configMessage = this.t("aiConsent"); return; }
         return this.settingsOperation("test");
+    }
+    testCapability() {
+        if (this.configDirty) { this.state.configMessage = this.t('pendingSave'); return; }
+        if (!this.state.aiConsent) { this.state.configMessage = this.t('aiConsent'); return; }
+        return this.settingsOperation('capability');
     }
     async runAI() {
         if (!this.state.aiConsent) { this.state.aiError = this.t("aiConsent"); return; }

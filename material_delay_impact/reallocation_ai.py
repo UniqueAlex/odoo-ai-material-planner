@@ -59,6 +59,10 @@ def contract(value, display_timezone):
 
 
 def run(value, provider, model, language, key, display_timezone='UTC', *, output_token_limit=MAX_OUTPUT_TOKENS):
+    return ai_engine.metered(lambda send: _run(value,provider,model,language,key,display_timezone,output_token_limit,send))
+
+
+def _run(value,provider,model,language,key,display_timezone,output_token_limit,send):
     if provider not in ai_engine.PROVIDERS:
         raise ai_engine.AnalysisError('configuration')
     if type(output_token_limit) is not int or not 128 <= output_token_limit <= MAX_OUTPUT_TOKENS:
@@ -91,7 +95,7 @@ def run(value, provider, model, language, key, display_timezone='UTC', *, output
     else:
         payload={'model':model,'input':messages,'max_output_tokens':output_token_limit,'store':False,
             'text':{'format':{'type':'json_schema','name':'reallocation_explanation','strict':True,'schema':SCHEMA}}}
-    response=ai_engine.post(provider,payload,key,time.monotonic()+75)
+    response=send(provider,payload,key,time.monotonic()+75)
     if provider=='deepseek':
         choices=response.get('choices',[])
         if not isinstance(choices,list) or len(choices)!=1 or not isinstance(choices[0],dict) or choices[0].get('finish_reason')!='stop':

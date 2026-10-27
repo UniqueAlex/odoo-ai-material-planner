@@ -13,7 +13,7 @@ import stat
 import secrets
 
 from .ai_engine import AnalysisError
-from .secure_config import validate_settings
+from .secure_config import validate_settings, revision, validation_update
 
 
 class PosixStore:
@@ -117,8 +117,28 @@ class PosixStore:
                     raise AnalysisError("secure_storage")
                 encryption_key = Fernet.generate_key()
                 self._write_file(directory, self.key_name, encryption_key)
-            value = dict(provider=provider, model=model, key=key, scope=self.scope)
+            value = dict(provider=provider, model=model, key=key, scope=self.scope,
+                         revision=secrets.token_hex(16), validation={})
             self._write_file(directory, self.name, Fernet(encryption_key).encrypt(json.dumps(value).encode()))
+
+    def mark_validation(self, expected_revision, level):
+        from cryptography.fernet import Fernet
+        with self._locked() as directory:
+            if directory is None:
+                return False
+            token = self._read_file(directory, self.name)
+            if token is None:
+                return False
+            key = self._read_file(directory, self.key_name, 128)
+            value = json.loads(Fernet(key).decrypt(token))
+            if value.get('scope') != self.scope:
+                raise AnalysisError('secure_storage')
+            validate_settings(value['provider'], value['model'], value['key'])
+            if revision(value) != expected_revision:
+                return False
+            value['validation'] = validation_update(value, level)
+            self._write_file(directory, self.name, Fernet(key).encrypt(json.dumps(value).encode()))
+            return True
 
     def remove(self):
         with self._locked() as directory:
