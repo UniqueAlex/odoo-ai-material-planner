@@ -84,6 +84,17 @@ def request(provider, payload, key):
 
 
 def response(provider, value):
+    # Usage belongs to the received response even if its content is malformed.
+    # Return a rejected envelope so the shared meter records it before validation.
+    usage = gemini_usage(value) if provider == 'gemini' else claude_usage(value)
+    try:
+        result = _response(provider, value)
+    except (ValueError, TypeError, KeyError, AttributeError):
+        result = {'status': 'incomplete', 'output': []}
+    return {**result, 'usage': usage}
+
+
+def _response(provider, value):
     output, texts, calls = [], [], []
     if provider == 'gemini':
         candidates = value.get('candidates', [])
@@ -109,14 +120,7 @@ def response(provider, value):
             elif part.get('type') == 'text':
                 texts.append({'type': 'output_text', 'text': part['text']})
         complete = value.get('stop_reason') in ('end_turn', 'tool_use')
-        raw = value.get('usage') or {}
-        usage = dict(raw)
-        # Claude input_tokens excludes cache creation/read; include them once.
-        counts = [raw.get('input_tokens'), raw.get('cache_creation_input_tokens', 0), raw.get('cache_read_input_tokens', 0)]
-        if all(type(n) is int and n >= 0 for n in counts):
-            usage['input_tokens'] = sum(counts)
-        if all(type(usage.get(n)) is int and usage[n] >= 0 for n in ('input_tokens', 'output_tokens')):
-            usage['total_tokens'] = usage['input_tokens'] + usage['output_tokens']
+        usage = claude_usage(value)
     if calls:
         output.append({'type': 'provider_message', 'native': native})
         output.extend(calls)
@@ -125,8 +129,27 @@ def response(provider, value):
     return {'status': 'completed' if complete else 'incomplete', 'output': output, 'usage': usage}
 
 
+def claude_usage(value):
+    raw = value.get('usage')
+    if not isinstance(raw, dict):
+        return {}
+    usage = {}
+    # Input excludes cache creation/read. Invalid cache metadata must not produce
+    # a plausible but understated total from the non-cache input alone.
+    counts = [raw.get('input_tokens'), raw.get('cache_creation_input_tokens', 0), raw.get('cache_read_input_tokens', 0)]
+    if all(type(n) is int and n >= 0 for n in counts):
+        usage['input_tokens'] = sum(counts)
+    if type(raw.get('output_tokens')) is int and raw['output_tokens'] >= 0:
+        usage['output_tokens'] = raw['output_tokens']
+    if 'input_tokens' in usage and 'output_tokens' in usage:
+        usage['total_tokens'] = usage['input_tokens'] + usage['output_tokens']
+    return usage
+
+
 def gemini_usage(value):
-    raw = value.get('usageMetadata') or {}
+    raw = value.get('usageMetadata')
+    if not isinstance(raw, dict):
+        return {}
     usage = {}
     for src, dest in [('promptTokenCount', 'input_tokens'), ('totalTokenCount', 'total_tokens')]:
         if type(raw.get(src)) is int and raw[src] >= 0:

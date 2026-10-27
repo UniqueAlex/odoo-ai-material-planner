@@ -856,6 +856,9 @@ def _run(task, provider, model, language, key, send):
             output = response.get("output", [])
             calls = [(item.get("call_id"), item.get("name"), item.get("arguments", ""))
                      for item in output if item.get("type") == "function_call"]
+            if calls and ready:
+                # All providers must respect the same evidence/repair boundary.
+                raise AnalysisError("format")
             if calls:
                 history.extend(output)
             text = "".join(content.get("text", "") for item in output if item.get("type") == "message"

@@ -1,6 +1,15 @@
 Changelog
 =========
 
+19.0.1.1.1 (2026-10-27)
+----------------------
+* Enforce the same completed-evidence tool boundary for all four providers.
+* Reject malformed Gemini/Claude content while preserving valid returned usage.
+* Treat invalid Claude cache counts as unknown instead of understating totals.
+* Add native-format simulations for historical identity, internal-ID, date,
+  quantity, coverage, overlap, language, option-selection and usage regressions.
+* No live model requests. See PROVIDER-REGRESSION-ACCEPTANCE.rst for scope.
+
 19.0.1.1.0 (2026-10-27)
 ----------------------
 * Add visible first-use setup guidance and actionable, localized API error help.
