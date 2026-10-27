@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI setup guide | AI Material Planner</title>
+<style>body{font:16px/1.7 system-ui,sans-serif;color:#243448;background:#f3f5f8;margin:0}main{max-width:1040px;margin:24px auto;background:#fff;padding:32px}h1{font-size:30px;line-height:1.25}h2{font-size:23px;margin-top:32px}h3{font-size:18px}a{color:#315f99}table{width:100%;border-collapse:collapse}th,td{border:1px solid #dce3ea;padding:12px;text-align:left;vertical-align:top;overflow-wrap:anywhere}.table-wrap{overflow-x:auto}.note{background:#edf3fa;border-left:4px solid #526d99;padding:16px}li{margin-bottom:8px}code{overflow-wrap:anywhere}@media(max-width:600px){main{margin:0;padding:20px}table{font-size:14px}th,td{padding:8px}}</style></head>
+<body><main>
+<nav><a href="index.html">Product overview</a> &middot; <a href="quick-start.html">Three-role quick start</a> &middot; <a href="#chinese">中文速查</a></nav>
+<h1>Connect your AI account, step by step</h1>
+<p>AI Material Planner 19.0.1.1.1 &middot; Configuration guide reviewed 27 October 2026.</p>
+<p class="note"><strong>AI is optional.</strong> You can calculate shortages and compare allocations without a key. To use AI, choose <strong>one provider</strong>, choose its model and save that provider's API key. You do not need four accounts or a key for every employee.</p>
+<h2>1. Choose the matching provider and API key</h2>
+<p>Ask an Odoo system administrator to configure the current company. Use an API account with available quota and permission to use the chosen model. A chat website login, password or chat subscription is not an API key or proof of API credit.</p>
+<!-- provider-table:start -->
+<div class="table-wrap" style="overflow-x:auto;"><table class="table table-bordered" style="width:100%;min-width:580px;border-collapse:collapse;"><thead><tr><th>Choose in Odoo</th><th>Get the matching API key</th><th>Preset in this release</th><th>Validation status</th></tr></thead><tbody>
+<tr><td><strong>DeepSeek</strong><br/>Direct DeepSeek API</td><td><a href="https://platform.deepseek.com/">DeepSeek API platform</a><br/>Create a key in the API account; check available API balance.</td><td><code>deepseek-flash</code></td><td>Prior live DeepSeek acceptance; current cross-provider regression simulations. This does not certify every future model revision.</td></tr>
+<tr><td><strong>OpenAI</strong><br/>Direct Responses API</td><td><a href="https://platform.openai.com/api-keys">OpenAI API keys</a><br/>Use the intended API project, with model access and API quota.</td><td><code>gpt-4.1-mini</code></td><td>Implemented and simulation-tested; live acceptance not completed.</td></tr>
+<tr><td><strong>Gemini</strong><br/>Google Gemini API</td><td><a href="https://aistudio.google.com/apikey">Google AI Studio API keys</a><br/>Create a current Gemini API key for the intended project. Check that project's quota and key restrictions.</td><td><code>gemini-3.1-flash-lite</code></td><td>Implemented and simulation-tested; live acceptance not completed.</td></tr>
+<tr><td><strong>Claude</strong><br/>Direct Anthropic Messages API</td><td><a href="https://platform.claude.com/settings/keys">Claude Console API keys</a><br/>Create a key for the intended workspace with model access and API quota.</td><td><code>claude-haiku-5-5</code></td><td>Implemented and simulation-tested; live acceptance not completed.</td></tr>
+</tbody></table></div>
+<!-- provider-table:end -->
+<p><strong>Presets are starting configurations, not a guarantee of model availability.</strong> Provider model names, account permissions and regional availability can change. If a preset is unavailable, confirm the exact model ID in that provider's account; a manually entered model remains unverified until checked.</p>
+<p><strong>Supported connection scope:</strong> direct official APIs only. Azure OpenAI, Vertex AI, Amazon Bedrock, local models and custom/OpenAI-compatible gateway URLs are not included. There is no custom Base URL field. Selecting OpenAI does not make another vendor's key work.</p>
+<h2>2. Open the configuration in Odoo</h2>
+<ol>
+<li>Sign in as an Odoo system administrator and select the company whose configuration you want to set. Settings are scoped to the database and company.</li>
+<li>Open a confirmed purchase order with an unreceived storable material, then <strong>Material impact</strong>. Open this analysis page rather than an assigned shared-plan view.</li>
+<li>Click <strong>Set up AI</strong> on the first-use card, or <strong>AI settings</strong> at the top. If you only see an administrator reminder or cannot edit fields, ask your administrator to perform these steps.</li>
+<li>Select <strong>Provider</strong> and its suggested <strong>Model</strong>. Paste only the API key into <strong>API key</strong>, then click <strong>Save configuration</strong>. No server URL or programming is required for this configuration.</li>
+<li>The expected state is <strong>Saved, not yet tested</strong>. The key input clears after saving; this does not mean the encrypted saved key was lost. Use the saved status to check. Switching provider requires that provider's key.</li>
+</ol>
+<h2>3. Check the connection, then analysis capability</h2>
+<ol>
+<li>Read the page's data disclosure and enable its AI data-sharing checkbox below settings. Saving a key alone does not enable AI actions.</li>
+<li>Click <strong>Test connection (may incur charges)</strong>. Success means the selected key/model can answer a small request; it does not yet verify the analysis workflow.</li>
+<li>Click <strong>Verify analysis capability</strong>. This makes at most two small requests with synthetic data to check tool reading and structured output. It does not require business records.</li>
+<li>After capability verification passes, run one small material scenario and click <strong>Run AI analysis (may incur charges)</strong>. Compare the result with the local facts, especially harmed orders and dates. Verification does not guarantee every AI statement is correct.</li>
+</ol>
+<p>Connection and capability checks call the real provider when the customer clicks them and may consume API credit. The simulation-only status above describes our release tests, not what these customer-facing buttons do. Changing and saving settings clears previous verification. Save pending changes before testing. Avoid repeatedly clicking after a timeout: an interrupted request may already have incurred provider usage.</p>
+<h2>4. If setup does not work</h2>
+<div class="table-wrap" style="overflow-x:auto;"><table class="table table-bordered" style="width:100%;min-width:580px;border-collapse:collapse;"><thead><tr><th>What you see</th><th>What to do next</th></tr></thead><tbody>
+<tr><td>Save succeeded; key box is empty</td><td>Normal: the secret is cleared from the input. Check the saved status and proceed to connection testing.</td></tr>
+<tr><td>Test buttons are disabled</td><td>Save the configuration first, including any pending changes. Wait for an active operation to finish. Only an administrator can run configuration tests.</td></tr>
+<tr><td>AI data permission required</td><td>Read and enable the page's AI data-sharing checkbox. It applies to new AI actions on this page.</td></tr>
+<tr><td>Authentication/key error</td><td>Check the selected provider and its API key. Use an active API key, not a chat password. Replace a revoked or expired key, then save.</td></tr>
+<tr><td>Model unavailable or permission denied</td><td>Check the exact model ID and permissions in the key's project/workspace. Confirm the provider supports your Odoo server's region.</td></tr>
+<tr><td>Insufficient credit or rate limit</td><td>Check API billing/quota for the key's project. For a rate limit, wait before retrying or adjust the provider's permitted quota. Chat membership alone does not establish API quota.</td></tr>
+<tr><td>Connection passes but capability fails</td><td>The key works, but the selected model did not pass tool/structured-output checks. Check model support and permissions. Do not treat this as successful business analysis.</td></tr>
+<tr><td>Network error or timeout</td><td>Ask the server administrator to check outbound HTTPS, DNS, TLS/proxy settings and supported region from the Odoo server. A browser reaching the provider's website is not sufficient.</td></tr>
+<tr><td>Usage unavailable/incomplete</td><td>This means usage is unknown, not zero. The provider's account/billing records determine actual charges.</td></tr>
+</tbody></table></div>
+<p>If AI setup fails, local material calculation and option comparison remain available. Contact <a href="mailto:aa7266901@gmail.com">aa7266901@gmail.com</a> with the module version, provider, model ID and sanitized error. Do not send the API key or a production database.</p>
+<h2>Where the key and data go</h2>
+<p>The key is stored encrypted in the Odoo service's private data directory, scoped to the database and company. Business AI requests go from the Odoo server directly to the selected provider. Review <a href="privacy.html">AI data and fees</a> before enabling business-data sharing. See <a href="installation.html">installation and backup guidance</a> for moving the server or restoring credentials. Remove key deletes this module's saved configuration; revoke a key separately in the provider console if needed.</p>
+<h2 id="chinese">中文速查：第一次怎么配置</h2>
+<ol lang="zh-CN"><li>只需选一个服务商，不必四个平台都开通；本地缺料计算和方案比较不需要 Key。</li><li>由 Odoo 系统管理员切换到对应公司，从采购单打开“物料影响”，点击“开始配置 AI”或“AI 设置”。共享方案页面不是配置入口。</li><li>选择服务商及建议模型，填该平台的 API Key，点击“保存配置”。保存后输入框清空是正常行为；看“已保存，尚未验证”状态。</li><li>阅读并勾选数据授权，依次点击“测试连接”和“验证分析能力”。这两个按钮会真实调用模型，可能产生 API 费用。</li><li>通过后先做一个小场景，核对 AI 解读与计算结果。改动配置并保存后需重新验证。普通用户请联系管理员配置，不必各自填写 Key。</li><li>OpenAI、Gemini、Claude 已做接口模拟测试，尚未完成真实调用验收；DeepSeek 有此前真实验收记录。不能据此承诺所有模型、地区和账号均可用。</li><li>仅支持表中官方 API；不支持 Azure、Vertex AI、Bedrock、自建模型或第三方中转地址。聊天会员不等于 API 额度。</li></ol>
+<h2>Official key instructions</h2>
+<p>Consult the current provider instructions if the console changes: <a href="https://api-docs.deepseek.com/">DeepSeek API setup</a>; <a href="https://developers.openai.com/api/docs/quickstart">OpenAI API quickstart</a>; <a href="https://ai.google.dev/gemini-api/docs/api-key">Gemini API keys</a>; <a href="https://platform.claude.com/docs/en/manage-claude/authentication">Claude API authentication</a>. These links explain provider accounts; configure this module through the Odoo steps above.</p>
+</main></body></html>

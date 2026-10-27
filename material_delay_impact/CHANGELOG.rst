@@ -9,6 +9,8 @@ Changelog
 * Add native-format simulations for historical identity, internal-ID, date,
   quantity, coverage, overlap, language, option-selection and usage regressions.
 * No live model requests. See PROVIDER-REGRESSION-ACCEPTANCE.rst for scope.
+* Document each provider key source, setup steps, validation status and unsupported
+  deployment gateways in the store page and bundled first-use guide.
 
 19.0.1.1.0 (2026-10-27)
 ----------------------

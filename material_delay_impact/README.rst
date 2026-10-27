@@ -1,6 +1,6 @@
 AI Material Planner
 ===================
-Version 19.0.1.1.0. Free material-delay and allocation decision support for Odoo 19.
+Version 19.0.1.1.1. Free material-delay and allocation decision support for Odoo 19.
 Technical module name: material_delay_impact (unchanged for upgrades).
 Install through normal Odoo Apps from a configured custom add-ons directory.
 Dependencies: purchase_stock, mrp, web; see requirements.txt for Python dependencies.
@@ -17,5 +17,8 @@ not a guarantee of account/region availability. Azure, Vertex AI, Bedrock and
 arbitrary compatible proxy URLs are not included.
 First-use guidance separates saved settings, connection checks and synthetic
 analysis-capability verification. Saving changes clears old verification state.
-Read static/description/installation.html, privacy.html and quick-start.html.
+Start with static/description/ai-setup.html for provider key links, exact setup
+steps, validation states and error help (English / Chinese). Choose one provider;
+ordinary users do not need individual keys. Read installation.html, privacy.html
+and quick-start.html in the same directory for installation and business use.
 Support: aa7266901@gmail.com. License: LGPL-3; see LICENSE and COPYING.
