@@ -69,4 +69,3 @@ def make(name, later_quantity='3', incoming='3', bystander=False):
 def fixtures():
     return {'tradeoff':make('tradeoff'),'unknown':make('unknown',later_quantity='5',incoming='2'),
             'bystander':make('bystander',bystander=True)}
-

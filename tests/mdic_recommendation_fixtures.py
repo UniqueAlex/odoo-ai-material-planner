@@ -46,4 +46,3 @@ def make(unknown=False):
     return jsonable(result)
 
 def fixtures():return {'tradeoff':make(),'unknown':make(True)}
-
